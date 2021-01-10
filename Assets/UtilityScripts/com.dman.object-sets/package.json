@@ -1,0 +1,12 @@
+{
+  "name": "com.dman.object-sets",
+  "version": "0.1.0",
+  "displayName": "Object Sets",
+  "description": "Utility to maintain sets of indexed objects, either in editor or during runtime",
+  "unity": "2020.1",
+  "dependencies": {},
+  "author": {
+    "name": "Dan Miller",
+    "email": "dsmiller95@gmail.com"
+  }
+}

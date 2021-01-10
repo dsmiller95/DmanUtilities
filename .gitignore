@@ -1,0 +1,33 @@
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Unity #
+#########
+[Ll]ibrary
+[Tt]emp
+[Bb]uilds
+[Ll]ogs
+[Uu]serSettings
+*.unityproj
+
+# Visual Studio #
+#################
+[Oo]bj
+*.sln
+*.csproj
+*.csproj.user
+*.suo
+*.userprefs
+*.pidb
+.vs
+
+# Rider #
+#########
+.idea

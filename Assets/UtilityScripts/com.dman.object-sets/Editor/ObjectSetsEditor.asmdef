@@ -1,0 +1,16 @@
+{
+    "name": "ObjectSetsEditor",
+    "rootNamespace": "Dman.ObjectSets",
+    "references": [
+        "GUID:c89e1c2639f65d549a075aac1877b9a1"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,12 @@
+{
+  "name": "com.dman.utilities",
+  "version": "0.1.0",
+  "displayName": "Dman's Utilities",
+  "description": "A bunch of utilities too small to go in their own package",
+  "unity": "2020.1",
+  "dependencies": {},
+  "author": {
+    "name": "Dan Miller",
+    "email": "dsmiller95@gmail.com"
+  }
+}

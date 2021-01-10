@@ -1,0 +1,16 @@
+{
+    "name": "ReactiveVariablesEditor",
+    "rootNamespace": "Dman.ReactiveVariables",
+    "references": [
+        "ReactiveVariables"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

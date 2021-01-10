@@ -1,0 +1,14 @@
+{
+  "name": "com.dman.reactive-variables",
+  "version": "0.1.0",
+  "displayName": "Reactive ",
+  "description": "Design and breed Genomes together",
+  "unity": "2020.1",
+  "dependencies": {
+    "com.neuecc.unirx": "7.1.0"
+  },
+  "author": {
+    "name": "Dan Miller",
+    "email": "dsmiller95@gmail.com"
+  }
+}

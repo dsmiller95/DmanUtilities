@@ -1,0 +1,17 @@
+{
+    "name": "SceneSaveSystem",
+    "rootNamespace": "Dman.SceneSaveSystem",
+    "references": [
+        "ObjectSets",
+        "Utilities"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
