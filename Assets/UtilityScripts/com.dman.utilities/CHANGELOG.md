@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0] - 2021-01-16
+
+serializable vectors.
+
+### Added
+
+- Serializable Vector2, 3, and 4 with implicit casts
+
 ## [0.1.0] - 2021-01-10
 
 Initial release.

@@ -1,6 +1,6 @@
 {
   "name": "com.dman.utilities",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "Dman's Utilities",
   "description": "A bunch of utilities too small to go in their own package",
   "unity": "2020.1",
