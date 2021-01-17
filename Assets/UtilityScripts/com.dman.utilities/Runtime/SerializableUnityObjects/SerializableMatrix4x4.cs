@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Dman.Utilities
+namespace Dman.Utilities.SerializableUnityObjects
 {
     [Serializable]
     public class SerializableMatrix4x4
@@ -35,7 +35,7 @@ namespace Dman.Utilities
                 ));
         }
 
-        public Matrix4x4 GetMatrix()
+        public Matrix4x4 GetDeserialized()
         {
             var newMatrix = new Matrix4x4();
             foreach (var vect in FromFloatStream(matrixData).Select((vect, i) => new { vect, i }))
@@ -44,5 +44,8 @@ namespace Dman.Utilities
             }
             return newMatrix;
         }
+
+        public static implicit operator Matrix4x4(SerializableMatrix4x4 serializable) => serializable.GetDeserialized();
+        public static implicit operator SerializableMatrix4x4(Matrix4x4 notSerializable) => new SerializableMatrix4x4(notSerializable);
     }
 }
