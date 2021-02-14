@@ -1,12 +1,18 @@
 # Changelog
 
+## [0.3.2] - 2021-02-24
+
+### Added
+
+- fix to the raycast group which breaks it when using the editor
+
 ## [0.3.1] - 2021-02-24
 
 ### Added
 
 - create asset menu for raycast group
 
-## [0.3.0] - 2021-01-16
+## [0.3.0] - 2021-02-24
 
 mouse over raycast helper. remove isMouseDown check on the RaycastToObject method.
 

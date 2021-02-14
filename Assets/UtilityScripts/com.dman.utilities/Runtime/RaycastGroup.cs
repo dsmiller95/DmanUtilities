@@ -19,7 +19,8 @@ namespace Dman.Utilities
         {
             get
             {
-                if(Time.frameCount > lastFrameRaycasted)
+                // lastFrameRaycasted can be greater than if the scriptableobject has cached in edit mode
+                if(Time.frameCount != lastFrameRaycasted)
                 {
                     this.CheckForRaycastHit();
                     lastFrameRaycasted = Time.frameCount;
