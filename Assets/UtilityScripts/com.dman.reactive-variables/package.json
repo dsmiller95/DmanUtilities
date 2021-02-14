@@ -2,7 +2,7 @@
   "name": "com.dman.reactive-variables",
   "version": "0.1.1",
   "displayName": "Reactive ",
-  "description": "Design and breed Genomes together",
+  "description": "Implementation of reactive scriptable object variables",
   "unity": "2020.1",
   "dependencies": {
     "com.neuecc.unirx": "7.1.0"
