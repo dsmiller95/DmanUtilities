@@ -21,21 +21,26 @@ namespace Dman.Utilities
             return default;
         }
 
-        public static bool RaycastToObject(LayerMask mask, out RaycastHit hit)
+        /// <summary>
+        /// Raycasts from the current mouse position to a game object.
+        ///     over the UI
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <param name="hit"></param>
+        /// <param name="failOnUI">When true, the raycast hit will fail if it hits a UI element</param>
+        /// <returns></returns>
+        public static bool RaycastToObject(LayerMask mask, out RaycastHit hit, bool failOnUI = true)
         {
             hit = default;
-            if (Input.GetMouseButtonDown(0))
+            if (failOnUI && EventSystem.current.IsPointerOverGameObject())
             {
-                if (EventSystem.current.IsPointerOverGameObject())
-                {
-                    return false;
-                }
-                var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out var innerHit, 100, mask))
-                {
-                    hit = innerHit;
-                    return true;
-                }
+                return false;
+            }
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out var innerHit, 100, mask))
+            {
+                hit = innerHit;
+                return true;
             }
             return false;
         }
