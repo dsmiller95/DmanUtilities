@@ -2,7 +2,7 @@
 
 namespace Dman.ReactiveVariables
 {
-    [CreateAssetMenu(fileName = "ScriptableObjectVariable", menuName = "ReactiveVariables/ScriptableObjectVariable", order = 1)]
+    [CreateAssetMenu(fileName = "ScriptableObjectVariable", menuName = "DmanUtilities/ReactiveVariables/ScriptableObjectVariable", order = 1)]
     public class ScriptableObjectVariable : GenericVariable<ScriptableObject>
     {
     }

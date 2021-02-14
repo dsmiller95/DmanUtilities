@@ -2,7 +2,7 @@
 
 namespace Dman.ReactiveVariables
 {
-    [CreateAssetMenu(fileName = "BooleanState", menuName = "ReactiveVariables/BooleanState", order = 2)]
+    [CreateAssetMenu(fileName = "BooleanState", menuName = "DmanUtilities/ReactiveVariables/BooleanState", order = 2)]
     public class BooleanState : GenericState<bool>
     {
         public bool defaultState;

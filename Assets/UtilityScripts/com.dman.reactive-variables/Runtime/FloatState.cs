@@ -2,7 +2,7 @@
 
 namespace Dman.ReactiveVariables
 {
-    [CreateAssetMenu(fileName = "FloatState", menuName = "ReactiveVariables/FloatState", order = 2)]
+    [CreateAssetMenu(fileName = "FloatState", menuName = "DmanUtilities/ReactiveVariables/FloatState", order = 2)]
     public class FloatState : GenericState<float>
     {
         public float defaultState;

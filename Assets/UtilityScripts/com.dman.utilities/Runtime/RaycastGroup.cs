@@ -2,6 +2,7 @@
 
 namespace Dman.Utilities
 {
+    [CreateAssetMenu(fileName = "RaycastGroup", menuName = "DmanUtilities/RaycastGroup", order = 10)]
     public class RaycastGroup : ScriptableObject
     {
         public LayerMask layersToRaycastTo;

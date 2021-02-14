@@ -2,7 +2,7 @@
 
 namespace Dman.ReactiveVariables
 {
-    [CreateAssetMenu(fileName = "IntState", menuName = "ReactiveVariables/IntState", order = 2)]
+    [CreateAssetMenu(fileName = "IntState", menuName = "DmanUtilities/ReactiveVariables/IntState", order = 2)]
     public class IntState : GenericState<int>
     {
         public int defaultState;

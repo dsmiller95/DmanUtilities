@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Dman.ReactiveVariables
 {
-    [CreateAssetMenu(fileName = "EventGroup", menuName = "ReactiveVariables/EventGroup", order = 10)]
+    [CreateAssetMenu(fileName = "EventGroup", menuName = "DmanUtilities/ReactiveVariables/EventGroup", order = 10)]
     public class EventGroup : ScriptableObject
     {
         public event Action OnEvent;
