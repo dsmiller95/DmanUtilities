@@ -34,11 +34,11 @@ namespace Dman.Utilities.SerializableUnityObjects
 
         public void OnBeforeSerialize()
         {
-            keyValuePairs = backingDictionary.Select(x => new InternalKeyPair
+            keyValuePairs = backingDictionary?.Select(x => new InternalKeyPair
             {
                 key = x.Key,
                 value = x.Value
-            }).ToList();
+            }).ToList() ?? new List<InternalKeyPair>();
         }
 
 
