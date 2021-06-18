@@ -18,9 +18,10 @@ namespace Dman.Utilities.SerializableUnityObjects
             backingDictionary = new Dictionary<TKey, TValue>();
         }
 
-
+        [SerializeField]
         private List<InternalKeyPair> keyValuePairs;
 
+        [Serializable]
         class InternalKeyPair
         {
             public TKey key;
@@ -44,9 +45,11 @@ namespace Dman.Utilities.SerializableUnityObjects
             }).ToList() ?? new List<InternalKeyPair>();
         }
 
-
         #region interface reimplementation
-        public TValue this[TKey key] { get => ((IDictionary<TKey, TValue>)backingDictionary)[key]; set => ((IDictionary<TKey, TValue>)backingDictionary)[key] = value; }
+        public TValue this[TKey key] {
+            get => ((IDictionary<TKey, TValue>)backingDictionary)[key];
+            set => ((IDictionary<TKey, TValue>)backingDictionary)[key] = value; 
+        }
 
         public ICollection<TKey> Keys => ((IDictionary<TKey, TValue>)backingDictionary).Keys;
 
