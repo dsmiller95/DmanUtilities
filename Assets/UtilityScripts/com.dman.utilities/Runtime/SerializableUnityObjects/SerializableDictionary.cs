@@ -29,7 +29,10 @@ namespace Dman.Utilities.SerializableUnityObjects
 
         public void OnAfterDeserialize()
         {
-            backingDictionary = keyValuePairs.ToDictionary(x => x.key, x => x.value);
+            backingDictionary = keyValuePairs?
+                .Where(x => x != null)
+                .ToDictionary(x => x.key, x => x.value)
+                ?? new Dictionary<TKey, TValue>();
         }
 
         public void OnBeforeSerialize()
