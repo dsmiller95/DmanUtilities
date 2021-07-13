@@ -1,6 +1,6 @@
 {
   "name": "com.dman.object-sets",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "displayName": "Object Sets",
   "description": "Utility to maintain sets of indexed objects, either in editor or during runtime",
   "unity": "2020.1",
