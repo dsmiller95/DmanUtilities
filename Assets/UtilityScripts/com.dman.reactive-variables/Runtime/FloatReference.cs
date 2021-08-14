@@ -13,5 +13,12 @@ namespace Dman.ReactiveVariables
         {
             return Instancer.GetFloatValue(NamePath);
         }
+
+        public float Increment(float amount = 1)
+        {
+            var newValue = CurrentValue + amount;
+            SetValue(newValue);
+            return newValue;
+        }
     }
 }

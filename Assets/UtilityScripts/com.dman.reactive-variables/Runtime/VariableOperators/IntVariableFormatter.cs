@@ -5,10 +5,10 @@ using UnityEngine.UI;
 
 namespace Dman.ReactiveVariables.VariableOperators
 {
-    public class FloatVariableFormatter : MonoBehaviour
+    public class IntVariableFormatter : MonoBehaviour
     {
-        public FloatReference reference;
-        public string formatString = "{0,6:P1} speed";
+        public IntReference reference;
+        public string formatString = "{0,3:D} speed";
 
         public UnityEvent<string> TextUpdate;
 

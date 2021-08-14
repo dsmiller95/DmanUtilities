@@ -9,8 +9,8 @@ namespace Dman.ReactiveVariables
         [Multiline]
         public string DeveloperDescription = "";
 #endif
-
-        public BehaviorSubject<T> Value = new BehaviorSubject<T>(default);
+        private BehaviorSubject<T> _value = new BehaviorSubject<T>(default);
+        public BehaviorSubject<T> Value => _value;
 
         public void SetValue(T value)
         {
@@ -26,6 +26,6 @@ namespace Dman.ReactiveVariables
             SetValue(default(T));
         }
 
-        public T CurrentValue => Value.Value;
+        public T CurrentValue { get => Value.Value; set => SetValue(value); }
     }
 }

@@ -46,6 +46,10 @@ namespace Dman.ReactiveVariables
                         throw new Exception("Invalid data source");
                 }
             }
+            set
+            {
+                SetValue(value);
+            }
         }
 
         public IObservable<T> ValueChanges
@@ -83,5 +87,7 @@ namespace Dman.ReactiveVariables
                     throw new Exception("Invalid data source");
             }
         }
+
+        public static implicit operator T(GenericReference<T> reference) => reference.CurrentValue;
     }
 }
