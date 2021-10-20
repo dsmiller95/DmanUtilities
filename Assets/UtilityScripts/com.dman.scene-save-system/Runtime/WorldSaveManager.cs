@@ -159,15 +159,24 @@ namespace Dman.SceneSaveSystem
 
         private static List<SaveScopeData> GetPrefabSaveScopeData(SaveablePrefabParent prefabParent, SaveTreeContext treeContext)
         {
-            var resultData = GetPrefabSaveScopeDataRecursive(prefabParent.gameObject, treeContext);
-
-            var castedData = resultData.OfType<SaveScopeData>().ToList();
-            if(castedData.Count != resultData.Count())
+            var resultData = new List<SaveScopeData>();
+            
+            foreach (Transform childTransform in prefabParent.transform)
             {
-                Debug.LogError($"No Save data can exist between the prefab parent and the prefab instances. found some under {prefabParent.prefabParentName}", prefabParent);
-                throw new System.Exception("Bad save scene format");
+                var saveablePrefab = childTransform.GetComponent<SaveablePrefab>();
+                if (saveablePrefab == null) continue;
+
+                var newScope = new PrefabSaveScopeIdentifier(saveablePrefab.myPrefabType, prefabParent.prefabParentName);
+                var dataInScope = GetPrefabSaveScopeDataRecursive(childTransform.gameObject, treeContext).ToList();
+                var newData = new SaveScopeData(newScope)
+                {
+                    dataInScope = dataInScope.OfType<SaveData>().ToList(),
+                    childScopes = dataInScope.OfType<SaveScopeData>().ToList()
+                };
+                resultData.Add(newData);
             }
-            return castedData;
+
+            return resultData;
         }
 
         private static IEnumerable<ISaveDataPiece> GetPrefabSaveScopeDataRecursive(GameObject iterationPoint, SaveTreeContext treeContext)

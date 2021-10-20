@@ -184,18 +184,19 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
             prefabParent = GameObject.FindObjectOfType<SaveablePrefabParent>();
             Assert.NotNull(prefabParent);
-            Assert.Equals(3, prefabParent.transform.childCount);
-            Assert.Equals("first!", prefabParent.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
-            Assert.Equals("second prefab instance", prefabParent.transform.GetChild(1).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
-            Assert.Equals("third prefab instance", prefabParent.transform.GetChild(2).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+            Assert.AreEqual(3, prefabParent.transform.childCount);
+            Assert.AreEqual("first!", prefabParent.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+            Assert.AreEqual("second prefab instance", prefabParent.transform.GetChild(1).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+            Assert.AreEqual("third prefab instance", prefabParent.transform.GetChild(2).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
 
             yield return new ExitPlayMode();
             yield return null;
 
             Object.DestroyImmediate(testSceneAsset);
             Object.DestroyImmediate(prefabRegistry);
-            Object.DestroyImmediate(saveablePrefab.GetComponent<SaveablePrefab>().myPrefabType);
-            Object.DestroyImmediate(saveablePrefab);
+
+            AssetDatabase.DeleteAsset("Assets/Test_Prefab_type.asset");
+            AssetDatabase.DeleteAsset("Assets/Test_Prefab.asset");
 
             // Use the Assert class to test conditions.
             // Use yield to skip a frame.

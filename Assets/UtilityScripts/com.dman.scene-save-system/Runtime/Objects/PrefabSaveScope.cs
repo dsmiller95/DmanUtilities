@@ -13,6 +13,12 @@ namespace Dman.SceneSaveSystem
 
         public string UniqueSemiReadableName => $"Prefab_Id_{prefabTypeId}_Parent_{prefabParentId}";
 
+        public PrefabSaveScopeIdentifier(SaveablePrefabType type, string parentId)
+        {
+            prefabTypeId = type.myId;
+            prefabParentId = parentId;
+        }
+
         public bool Equals(ISaveScopeIdentifier other)
         {
             if(!(other is PrefabSaveScopeIdentifier casted))
