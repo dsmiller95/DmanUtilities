@@ -1,0 +1,27 @@
+{
+    "name": "com.dman.scene-save-system.editmode-tests",
+    "rootNamespace": "Dman.SceneSaveSystem.EditmodeTests",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "SceneSaveSystem",
+        "Utilities",
+        "com.dman.scene-save-system.playmode-tests",
+        "ObjectSets"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

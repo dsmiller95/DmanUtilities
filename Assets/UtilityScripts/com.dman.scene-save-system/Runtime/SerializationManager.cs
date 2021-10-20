@@ -55,7 +55,7 @@ namespace Dman.SceneSaveSystem
             }
         }
 
-        public static object Load(string saveFile, string saveName)
+        public static T Load<T>(string saveFile, string saveName) where T: class
         {
             var path = SerializationManager.GetSavePath(saveFile, saveName);
             if (!File.Exists(path))
@@ -68,7 +68,12 @@ namespace Dman.SceneSaveSystem
 
             try
             {
-                return formatter.Deserialize(file);
+                var resultObj = formatter.Deserialize(file);
+                if(resultObj is T castedResult)
+                {
+                    return castedResult;
+                }
+                throw new System.Exception($"Saved file does not match type {typeof(T)}");
             }
             catch
             {
