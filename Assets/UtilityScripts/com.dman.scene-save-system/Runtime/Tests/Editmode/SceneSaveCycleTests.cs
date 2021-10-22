@@ -91,12 +91,12 @@ namespace Dman.SceneSaveSystem.EditmodeTests
             yield return null;
         }
 
-        private GameObject CreateSavablePrefab()
+        private GameObject CreateSavablePrefab(string topLevelName, System.Action<GameObject> extraSetup = null)
         {
             var prefabType = ScriptableObject.CreateInstance<SaveablePrefabType>();
-            AssetDatabase.CreateAsset(prefabType, "Assets/Test_Prefab_type.asset");
+            AssetDatabase.CreateAsset(prefabType, $"Assets/{topLevelName}_type.asset");
 
-            var prefabObject = new GameObject("saveable Prefab");
+            var prefabObject = new GameObject(topLevelName);
             var saveablePrefab = prefabObject.AddComponent<SaveablePrefab>();
             saveablePrefab.myPrefabType = prefabType;
 
@@ -105,7 +105,9 @@ namespace Dman.SceneSaveSystem.EditmodeTests
             var savedPrefab = nestedObject.AddComponent<SimpleSaveable>();
             savedPrefab.MySavedData = "inside a prefab!";
 
-            var prefab = PrefabUtility.SaveAsPrefabAsset(prefabObject, "Assets/Test_Prefab.prefab");
+            extraSetup?.Invoke(prefabObject);
+
+            var prefab = PrefabUtility.SaveAsPrefabAsset(prefabObject, $"Assets/{topLevelName}_prefab.prefab");
 
             Object.DestroyImmediate(prefabObject);
 
@@ -124,7 +126,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
             var saveable = topLevelSavedObject.AddComponent<SimpleSaveable>();
             saveable.MySavedData = "I am save data 1";
 
-            var saveablePrefab = CreateSavablePrefab();
+            var saveablePrefab = CreateSavablePrefab("topLevel");
             var prefabRegistry = ScriptableObject.CreateInstance<SaveablePrefabRegistry>();
             prefabRegistry.allObjects = new SaveablePrefabType[] { saveablePrefab.GetComponent<SaveablePrefab>().myPrefabType };
             prefabRegistry.AssignAllIDs();
@@ -146,7 +148,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
             yield return new EnterPlayMode();
 
-            saveablePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Test_Prefab.prefab");
+            saveablePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/topLevel_prefab.prefab");
             var prefabParent = GameObject.FindObjectOfType<SaveablePrefabParent>();
 
             var nextPrefab = GameObject.Instantiate(saveablePrefab, prefabParent.transform);
@@ -195,12 +197,145 @@ namespace Dman.SceneSaveSystem.EditmodeTests
             Object.DestroyImmediate(testSceneAsset);
             Object.DestroyImmediate(prefabRegistry);
 
-            AssetDatabase.DeleteAsset("Assets/Test_Prefab_type.asset");
-            AssetDatabase.DeleteAsset("Assets/Test_Prefab.asset");
+            AssetDatabase.DeleteAsset("Assets/topLevel_type.asset");
+            AssetDatabase.DeleteAsset("Assets/topLevel_prefab.prefab");
 
             // Use the Assert class to test conditions.
             // Use yield to skip a frame.
             yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator CyclesWithNestedSavedPrefabs()
+        {
+            var testScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            var testSceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(testScene.path);
+            var prefabRegistry = ScriptableObject.CreateInstance<SaveablePrefabRegistry>();
+
+            try
+            {
+                var topLevelPrefab = CreateSavablePrefab("topLevel", go =>
+                {
+                    var nestedObject = new GameObject("prefab parent in prefab");
+                    nestedObject.transform.parent = go.transform;
+                    var prefabParent = nestedObject.AddComponent<SaveablePrefabParent>();
+                    prefabParent.prefabParentName = "NestedPrefabParent";
+                });
+                var nestedPrefab = CreateSavablePrefab("nested");
+
+                prefabRegistry.allObjects = new SaveablePrefabType[] {
+                    topLevelPrefab.GetComponent<SaveablePrefab>().myPrefabType,
+                    nestedPrefab.GetComponent<SaveablePrefab>().myPrefabType
+                };
+                prefabRegistry.AssignAllIDs();
+
+                var prefabParentObject = new GameObject("prefab parent in scene");
+                prefabParentObject.AddComponent<SaveablePrefabParent>().prefabParentName = "ScenePrefabParent";
+
+                var saveManagerObject = new GameObject("save manager");
+                var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
+                saveManager.saveLoadScene = new Utilities.SceneReference()
+                {
+                    scenePath = testScene.path
+                };
+
+                saveManager.saveablePrefabRegistry = prefabRegistry;
+
+
+                SaveContext.instance.saveName = "test_save";
+
+                yield return new EnterPlayMode();
+
+                topLevelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/topLevel_prefab.prefab");
+                nestedPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/nested_prefab.prefab");
+                var prefabParentInScene = GameObject.FindObjectOfType<SaveablePrefabParent>();
+
+                {
+                    var nextPrefab = GameObject.Instantiate(topLevelPrefab, prefabParentInScene.transform);
+                    nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "first!";
+
+                    AddNestedPrefab(nestedPrefab, nextPrefab, "first nested!");
+                    AddNestedPrefab(nestedPrefab, nextPrefab, "second nested!");
+                    AddNestedPrefab(nestedPrefab, nextPrefab, "third nested!");
+                }
+
+                {
+                    var nextPrefab = GameObject.Instantiate(topLevelPrefab, prefabParentInScene.transform);
+                    nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "second prefab instance";
+                }
+
+                {
+                    var nextPrefab = GameObject.Instantiate(topLevelPrefab, prefabParentInScene.transform);
+                    nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "third prefab instance";
+
+                    AddNestedPrefab(nestedPrefab, nextPrefab, "first third nested!");
+                    AddNestedPrefab(nestedPrefab, nextPrefab, "second third nested!");
+                }
+
+                var saveables = GameObject.FindObjectsOfType<SimpleSaveable>();
+
+                saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+                Assert.NotNull(saveManager);
+
+                saveManager.Save();
+
+                yield return saveManager.LoadCoroutine();
+                yield return null;
+
+                saveables = GameObject.FindObjectsOfType<SimpleSaveable>();
+
+                saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+                Assert.NotNull(saveManager);
+
+                prefabParentInScene = GameObject.FindObjectsOfType<SaveablePrefabParent>().Where(x => x.prefabParentName == "ScenePrefabParent").First();
+                Assert.NotNull(prefabParentInScene);
+                Assert.AreEqual(3, prefabParentInScene.transform.childCount);
+
+                {
+                    Assert.AreEqual("first!", prefabParentInScene.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                    var prefabParentInPrefab = prefabParentInScene.transform.GetChild(0).GetComponentInChildren<SaveablePrefabParent>();
+                    Assert.AreEqual(3, prefabParentInPrefab.transform.childCount);
+                    Assert.AreEqual("first nested!", prefabParentInPrefab.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                    Assert.AreEqual("second nested!", prefabParentInPrefab.transform.GetChild(1).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                    Assert.AreEqual("third nested!", prefabParentInPrefab.transform.GetChild(2).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                }
+                {
+                    Assert.AreEqual("second prefab instance", prefabParentInScene.transform.GetChild(1).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                    var prefabParentInPrefab = prefabParentInScene.transform.GetChild(0).GetComponentInChildren<SaveablePrefabParent>();
+                    Assert.AreEqual(0, prefabParentInPrefab.transform.childCount);
+                }
+                {
+                    Assert.AreEqual("third prefab instance", prefabParentInScene.transform.GetChild(2).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                    var prefabParentInPrefab = prefabParentInScene.transform.GetChild(0).GetComponentInChildren<SaveablePrefabParent>();
+                    Assert.AreEqual(2, prefabParentInPrefab.transform.childCount);
+                    Assert.AreEqual("first third nested!", prefabParentInPrefab.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                    Assert.AreEqual("second third nested!", prefabParentInPrefab.transform.GetChild(1).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                }
+
+                yield return new ExitPlayMode();
+                yield return null;
+            }
+            finally
+            {
+                Object.DestroyImmediate(testSceneAsset);
+                Object.DestroyImmediate(prefabRegistry);
+
+                AssetDatabase.DeleteAsset("Assets/topLevel_type.asset");
+                AssetDatabase.DeleteAsset("Assets/topLevel_prefab.prefab");
+                AssetDatabase.DeleteAsset("Assets/nested_type.asset");
+                AssetDatabase.DeleteAsset("Assets/nested_prefab.prefab");
+            }
+
+
+            // Use the Assert class to test conditions.
+            // Use yield to skip a frame.
+            yield return null;
+        }
+
+        private void AddNestedPrefab(GameObject nestedPrefab, GameObject parentPrefab, string savedData)
+        {
+            var nextNestedPrefab = GameObject.Instantiate(nestedPrefab, parentPrefab.GetComponentInChildren<SaveablePrefabParent>().transform);
+            nextNestedPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = savedData;
         }
 
         // TODO: test that global scope save data is transferred between scenes
