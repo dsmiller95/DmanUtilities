@@ -36,7 +36,7 @@ namespace Dman.SceneSaveSystem
             var globalScope = saveScopes.FirstOrDefault(x => x.scopeIdentifier is GlobalSaveScopeIdentifier);
             var sceneScope = saveScopes.FirstOrDefault(x => x.scopeIdentifier is SceneSaveScopeIdentifier);
 
-            var oldGlobalScope = SerializationManager.Load<SaveScopeData>(globalScope.scopeIdentifier.UniqueSemiReadableName + ".dat", SaveContext.instance.saveName);
+            var oldGlobalScope = SerializationManager.Load<SaveScopeData>(globalScope.scopeIdentifier, SaveContext.instance.saveName);
             if(oldGlobalScope == null)
             {
                 oldGlobalScope = globalScope;
@@ -48,7 +48,7 @@ namespace Dman.SceneSaveSystem
             SaveSystemHooks.TriggerPreSave();
 
             SerializationManager.Save(sceneScope.scopeIdentifier, SaveContext.instance.saveName, sceneScope);
-            SerializationManager.Save(globalScope.scopeIdentifier, SaveContext.instance.saveName, globalScope);
+            SerializationManager.Save(globalScope.scopeIdentifier, SaveContext.instance.saveName, oldGlobalScope);
 
             //SerializationManager.Save(gameobjectSaveRootFileName, SaveContext.instance.saveName, saveDataObject);
             SaveSystemHooks.TriggerPostSave();

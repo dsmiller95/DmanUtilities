@@ -33,11 +33,43 @@ namespace Dman.SceneSaveSystem
 
         public void OverwriteWith(SaveScopeData other)
         {
-            // TODO!
             if (!other.scopeIdentifier.Equals(scopeIdentifier))
             {
                 throw new System.Exception("Cannot overwrite. Scope identifiers do not match");
             }
+            for (int i = 0; i < dataInScope.Count; i++)
+            {
+                var current = dataInScope[i];
+                if(other.DataInScopeDictionary.TryGetValue(current.uniqueSaveDataId, out var replacementData))
+                {
+                    dataInScope[i] = replacementData;
+                }
+            }
+            // assuming all child scopes are prefab scopes. in practice, this is how the tree gets set up currently
+            if(!childScopes.All(x => x.scopeIdentifier is PrefabSaveScopeIdentifier) || !other.childScopes.All(x => x.scopeIdentifier is PrefabSaveScopeIdentifier))
+            {
+                throw new System.NotImplementedException("Nested scopes of a type other than a prefab scope are not supported");
+            }
+
+
+            //this.childScopes = other.childScopes;
+
+            var otherPrefabParentNames = other.childScopes
+                .Select(x => x.scopeIdentifier)
+                .OfType<PrefabSaveScopeIdentifier>()
+                .Select(x => x.prefabParentId)
+                .Distinct()
+                .ToList();
+
+            // remove every prefab under prefab parents that are present 
+            this.childScopes = childScopes
+                .Where(x =>
+                    {
+                        var prefabParent = (x.scopeIdentifier as PrefabSaveScopeIdentifier).prefabParentId;
+                        return !otherPrefabParentNames.Contains(prefabParent);
+                    })
+                .Concat(other.childScopes)
+                .ToList();
         }
     }
 }

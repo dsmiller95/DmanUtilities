@@ -98,6 +98,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
         {
             var prefabType = ScriptableObject.CreateInstance<SaveablePrefabType>();
             AssetDatabase.CreateAsset(prefabType, $"Assets/{topLevelName}_type.asset");
+            prefabType = AssetDatabase.LoadAssetAtPath<SaveablePrefabType>($"Assets/{topLevelName}_type.asset");
 
             var prefabObject = new GameObject(topLevelName);
             var saveablePrefab = prefabObject.AddComponent<SaveablePrefab>();
@@ -115,6 +116,11 @@ namespace Dman.SceneSaveSystem.EditmodeTests
             Object.DestroyImmediate(prefabObject);
 
             prefabType.prefab = prefab.GetComponent<SaveablePrefab>();
+            EditorUtility.SetDirty(prefabType);
+            AssetDatabase.SaveAssets();
+
+            prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/{topLevelName}_prefab.prefab");
+
             return prefab;
         }
 
@@ -355,8 +361,6 @@ namespace Dman.SceneSaveSystem.EditmodeTests
             var oldSceneBuilds = EditorBuildSettings.scenes.ToList().ToArray();
             try
             {
-
-
                 {
                     // setup scene A
                     var testSceneA = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -522,7 +526,160 @@ namespace Dman.SceneSaveSystem.EditmodeTests
             yield return null;
         }
 
-        // TODO: test the global scope is reconciled between scenes when not every property is saved in every scene
+
+        [UnityTest]
+        public IEnumerator RetainsWholeGlobalScopeDataBetweenScenesReconcilesEmptyPrefabParentCorrectly()
+        {
+            {
+                var prefabRegistry = ScriptableObject.CreateInstance<SaveablePrefabRegistry>();
+                var saveablePrefab = CreateSavablePrefab("topLevel");
+                var prefabType = AssetDatabase.LoadAssetAtPath<SaveablePrefabType>("Assets/topLevel_type.asset");
+                prefabRegistry.allObjects = new SaveablePrefabType[] { prefabType };
+                prefabRegistry.AssignAllIDs();
+                AssetDatabase.CreateAsset(prefabRegistry, $"Assets/prefab_type_registry.asset");
+            }
+
+            var oldSceneBuilds = EditorBuildSettings.scenes.ToList().ToArray();
+            try
+            {
+                {
+                    // setup scene A
+                    var testSceneA = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                    var prefabParentObject = new GameObject("prefab parent");
+                    prefabParentObject.AddComponent<GlobalSaveFlag>();
+                    prefabParentObject.AddComponent<SaveablePrefabParent>().prefabParentName = "a parent to prefabs";
+
+                    var prefabParentObjectTwo = new GameObject("prefab parent two");
+                    prefabParentObjectTwo.AddComponent<GlobalSaveFlag>();
+                    prefabParentObjectTwo.AddComponent<SaveablePrefabParent>().prefabParentName = "another parent to prefabs";
+
+                    var saveManagerObject = new GameObject("save manager");
+                    var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
+                    var prefabRegistry = AssetDatabase.LoadAssetAtPath<SaveablePrefabRegistry>("Assets/prefab_type_registry.asset");
+                    saveManager.saveablePrefabRegistry = prefabRegistry;
+                    saveManager.saveLoadScene = new Utilities.SceneReference()
+                    {
+                        scenePath = $"Assets/SceneA.unity"
+                    };
+
+                    testSceneA.name = "SceneA";
+                    EditorSceneManager.SaveScene(testSceneA, $"Assets/SceneA.unity");
+                }
+
+                {
+                    // setup scene B
+                    var testSceneB = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                    var prefabParentObject = new GameObject("prefab parent");
+                    prefabParentObject.AddComponent<GlobalSaveFlag>();
+                    prefabParentObject.AddComponent<SaveablePrefabParent>().prefabParentName = "a parent to prefabs";
+
+                    var saveManagerObject = new GameObject("save manager");
+                    var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
+                    var prefabRegistry = AssetDatabase.LoadAssetAtPath<SaveablePrefabRegistry>("Assets/prefab_type_registry.asset");
+                    saveManager.saveablePrefabRegistry = prefabRegistry;
+                    saveManager.saveLoadScene = new Utilities.SceneReference()
+                    {
+                        scenePath = $"Assets/SceneB.unity"
+                    };
+
+                    testSceneB.name = "SceneB";
+                    EditorSceneManager.SaveScene(testSceneB, $"Assets/SceneB.unity");
+                }
+
+                EditorBuildSettings.scenes = new EditorBuildSettingsScene[]
+                {
+                    new EditorBuildSettingsScene("Assets/SceneA.unity", true),
+                    new EditorBuildSettingsScene("Assets/SceneB.unity", true)
+                };
+
+                var activeScene = EditorSceneManager.OpenScene("Assets/SceneA.unity", OpenSceneMode.Single);
+
+                yield return new EnterPlayMode();
+
+                {
+                    SaveContext.instance.saveName = "test_save";
+                    WorldSaveManager.DeleteSaveData();
+
+                    var saveablePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/topLevel_prefab.prefab");
+                    var prefabParent = GameObject.FindObjectsOfType<SaveablePrefabParent>().Where(x => x.prefabParentName == "a parent to prefabs").FirstOrDefault();
+
+                    var nextPrefab = GameObject.Instantiate(saveablePrefab, prefabParent.transform);
+                    nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "first!";
+                    nextPrefab = GameObject.Instantiate(saveablePrefab, prefabParent.transform);
+                    nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "second prefab instance";
+
+                    var prefabParentTwo = GameObject.FindObjectsOfType<SaveablePrefabParent>().Where(x => x.prefabParentName == "another parent to prefabs").FirstOrDefault();
+                    nextPrefab = GameObject.Instantiate(saveablePrefab, prefabParentTwo.transform);
+                    nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "third prefab! in another!";
+
+                    var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+
+                    saveManager.Save();
+
+                    yield return saveManager.LoadCoroutine("Assets/SceneB.unity");
+                    yield return null;
+                }
+
+                {
+                    // Assert global save data, modify and save scene B
+                    var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+
+                    var prefabParent = GameObject.FindObjectOfType<SaveablePrefabParent>();
+
+                    Assert.AreEqual(2, prefabParent.transform.childCount);
+                    Assert.AreEqual("first!", prefabParent.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                    Assert.AreEqual("second prefab instance", prefabParent.transform.GetChild(1).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+
+                    GameObject.Destroy(prefabParent.transform.GetChild(0).gameObject);
+                    GameObject.Destroy(prefabParent.transform.GetChild(1).gameObject);
+
+                    yield return null;
+
+                    Assert.AreEqual(0, prefabParent.transform.childCount);
+
+                    saveManager.Save();
+
+                    yield return saveManager.LoadCoroutine("Assets/SceneA.unity");
+                    yield return null;
+                }
+
+                {
+                    // Assert save data changes from global and scene A
+                    var prefabParentTwo = GameObject.FindObjectsOfType<SaveablePrefabParent>().Where(x => x.prefabParentName == "another parent to prefabs").FirstOrDefault();
+                    Assert.AreEqual(1, prefabParentTwo.transform.childCount);
+                    Assert.AreEqual("third prefab! in another!", prefabParentTwo.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+
+                    var prefabParent = GameObject.FindObjectsOfType<SaveablePrefabParent>().Where(x => x.prefabParentName == "a parent to prefabs").FirstOrDefault();
+                    Assert.AreEqual(0, prefabParent.transform.childCount);
+
+
+                    yield return null;
+                }
+
+                yield return new ExitPlayMode();
+                yield return null;
+
+            }
+            finally
+            {
+                EditorBuildSettings.scenes = oldSceneBuilds;
+
+                AssetDatabase.DeleteAsset("Assets/SceneA.unity");
+                AssetDatabase.DeleteAsset("Assets/SceneB.unity");
+                AssetDatabase.DeleteAsset("Assets/topLevel_type.asset");
+                AssetDatabase.DeleteAsset("Assets/topLevel_prefab.prefab");
+                AssetDatabase.DeleteAsset("Assets/prefab_type_registry.asset");
+                WorldSaveManager.DeleteSaveData();
+            }
+
+            // Use the Assert class to test conditions.
+            // Use yield to skip a frame.
+            yield return null;
+        }
+
+        // TODO: test that the global scope, when reconciled, respects prefabs being removed completely under a prefab parent after being saved before
         // TODO: remove dependencies from saveable
     }
 }
