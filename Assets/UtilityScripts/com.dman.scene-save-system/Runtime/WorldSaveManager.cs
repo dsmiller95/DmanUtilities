@@ -143,18 +143,20 @@ namespace Dman.SceneSaveSystem
                 var prefabParent = iterationPoint.GetComponent<SaveablePrefabParent>();
                 if (prefabParent != null)
                 {
-                    var childScopes = currentScope.childScopes
-                        .Where(scopeData =>
-                            scopeData.scopeIdentifier is PrefabSaveScopeIdentifier prefabIdentifier &&
-                            prefabIdentifier.prefabParentId == prefabParent.prefabParentName);
                     foreach (var childScopeData in currentScope.childScopes)
                     {
                         if (!(childScopeData.scopeIdentifier is PrefabSaveScopeIdentifier prefabIdentifier) ||
-                            prefabIdentifier.prefabParentId != prefabParent.prefabParentName)
+                            prefabIdentifier.prefabParentId != prefabParent.prefabParentName ||
+                            prefabIdentifier.IsMarkerPrefab)
                         {
                             continue;
                         }
                         var prefab = prefabRegistry.GetUniqueObjectFromID(prefabIdentifier.prefabTypeId);
+                        if(prefab == null)
+                        {
+                            Debug.LogError($"No prefab found for prefab ID {prefabIdentifier.prefabTypeId}, did the prefab configuration change since the last save?", iterationPoint);
+                            throw new System.Exception("Bad prefab fomat");
+                        }
                         var newInstance = Instantiate(prefab.prefab, prefabParent.transform);
                         LoadRecurse(newInstance.gameObject, childScopeData, globalScope, prefabRegistry, treeContext);
                     }
@@ -252,7 +254,10 @@ namespace Dman.SceneSaveSystem
         private static List<SaveScopeData> GetPrefabSaveScopeData(SaveablePrefabParent prefabParent, SaveTreeContext treeContext)
         {
             var resultData = new List<SaveScopeData>();
-            
+
+            var markerScope = new PrefabSaveScopeIdentifier(prefabParent.prefabParentName);
+            resultData.Add(new SaveScopeData(markerScope));
+
             foreach (Transform childTransform in prefabParent.transform)
             {
                 var saveablePrefab = childTransform.GetComponent<SaveablePrefab>();
