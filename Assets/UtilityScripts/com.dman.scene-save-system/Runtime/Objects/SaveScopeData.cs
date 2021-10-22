@@ -10,6 +10,20 @@ namespace Dman.SceneSaveSystem
         public List<SaveData> dataInScope;
         public List<SaveScopeData> childScopes;
 
+        [System.NonSerialized]
+        private IDictionary<string, SaveData> _savedDict;
+        public IDictionary<string, SaveData> DataInScopeDictionary
+        {
+            get
+            {
+                if (_savedDict == null)
+                {
+                    _savedDict = dataInScope.ToDictionary(x => x.uniqueSaveDataId);
+                }
+                return _savedDict;
+            }
+        }
+
         public SaveScopeData(ISaveScopeIdentifier identifier)
         {
             dataInScope = new List<SaveData>();

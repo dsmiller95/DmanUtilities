@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Dman.SceneSaveSystem
@@ -9,26 +6,32 @@ namespace Dman.SceneSaveSystem
     [Serializable]
     public class SceneSaveScopeIdentifier : ISaveScopeIdentifier
     {
-        public int sceneId;
         public string scenePath;
         public string sceneName;
 
         public SceneSaveScopeIdentifier(Scene scene)
         {
-            this.sceneId = scene.handle;
             this.scenePath = scene.path;
             this.sceneName = scene.name;
         }
 
-        public string UniqueSemiReadableName => $"Scene_{sceneId}_{sceneName}";
+        public string UniqueSemiReadableName
+        {
+            get
+            {
+                var pathBytes = System.Text.Encoding.UTF8.GetBytes(scenePath);
+                var base64Path = System.Convert.ToBase64String(pathBytes);
+                return $"Scene_{sceneName}_{base64Path}";
+            }
+        }
 
         public bool Equals(ISaveScopeIdentifier other)
         {
-            if(!(other is SceneSaveScopeIdentifier casted))
+            if (!(other is SceneSaveScopeIdentifier casted))
             {
                 return false;
             }
-            return casted.sceneId == sceneId && casted.scenePath == scenePath && casted.sceneName == sceneName;
+            return casted.scenePath == scenePath && casted.sceneName == sceneName;
         }
     }
 }

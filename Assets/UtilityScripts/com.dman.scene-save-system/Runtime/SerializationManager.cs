@@ -6,7 +6,13 @@ namespace Dman.SceneSaveSystem
 {
     public static class SerializationManager
     {
-        public static bool Save(string saveFile, string saveName, object saveData)
+
+        public static string saveFileSuffix = ".dat";
+        public static bool Save<T>(ISaveScopeIdentifier saveScope, string saveName, T saveData)
+        {
+            return Save(saveScope.UniqueSemiReadableName + saveFileSuffix, saveName, saveData);
+        }
+        public static bool Save<T>(string saveFile, string saveName, T saveData)
         {
             var formatter = SerializationManager.GetBinaryFormatter();
 
@@ -53,6 +59,11 @@ namespace Dman.SceneSaveSystem
                 if (File.Exists(savePath))
                     File.Delete(savePath);
             }
+        }
+
+        public static T Load<T>(ISaveScopeIdentifier saveScope, string saveName) where T : class
+        {
+            return Load<T>(saveScope.UniqueSemiReadableName + saveFileSuffix, saveName);
         }
 
         public static T Load<T>(string saveFile, string saveName) where T: class

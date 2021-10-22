@@ -14,8 +14,6 @@ namespace Dman.SceneSaveSystem
         public SceneReference saveLoadScene;
         public string gameobjectSaveRootFileName = "objects.dat";
 
-        public string saveFileSuffix = ".dat";
-
 
         /// <summary>
         /// Save all ISaveableData in the scene, but not a child of a SaveablePrefab.
@@ -28,7 +26,7 @@ namespace Dman.SceneSaveSystem
             {
                 sceneToSave = SceneManager.GetActiveScene();
             }
-            var saveDataObject = GetMasterSaveObject(sceneToSave);
+            //var saveDataObject = GetMasterSaveObject(sceneToSave);
 
             var saveScopes = GetTopLevelSaveScopeData(sceneToSave);
             var globalScope = saveScopes.FirstOrDefault(x => x.scopeIdentifier is GlobalSaveScopeIdentifier);
@@ -45,10 +43,10 @@ namespace Dman.SceneSaveSystem
 
             SaveSystemHooks.TriggerPreSave();
 
-            SerializationManager.Save(sceneScope.scopeIdentifier.UniqueSemiReadableName + saveFileSuffix, SaveContext.instance.saveName, sceneScope);
-            SerializationManager.Save(globalScope.scopeIdentifier.UniqueSemiReadableName + saveFileSuffix, SaveContext.instance.saveName, globalScope);
+            SerializationManager.Save(sceneScope.scopeIdentifier, SaveContext.instance.saveName, sceneScope);
+            SerializationManager.Save(globalScope.scopeIdentifier, SaveContext.instance.saveName, globalScope);
 
-            SerializationManager.Save(gameobjectSaveRootFileName, SaveContext.instance.saveName, saveDataObject);
+            //SerializationManager.Save(gameobjectSaveRootFileName, SaveContext.instance.saveName, saveDataObject);
             SaveSystemHooks.TriggerPostSave();
         }
 
@@ -73,9 +71,76 @@ namespace Dman.SceneSaveSystem
             var sceneIndexToLoad = SceneUtility.GetBuildIndexByScenePath(saveLoadScene.scenePath);
             var loadingScene = SceneManager.LoadScene(sceneIndexToLoad, new LoadSceneParameters(LoadSceneMode.Single));
             yield return new WaitUntil(() => loadingScene.isLoaded);
-            LoadFromMasterSaveObjectIntoScene(worldSaveData, loadingScene, saveablePrefabRegistry);
+
+
+
+            //LoadFromMasterSaveObjectIntoScene(worldSaveData, loadingScene, saveablePrefabRegistry);
+
+            LoadIntoSingleScene(loadingScene, saveablePrefabRegistry);
+
             SaveSystemHooks.TriggerPostLoad();
             Destroy(gameObject);
+        }
+
+        public static void LoadIntoSingleScene(Scene scene, SaveablePrefabRegistry saveablePrefabRegistry)
+        {
+            var sceneScopeIdentity = new SceneSaveScopeIdentifier(scene);
+            var globalScope = new GlobalSaveScopeIdentifier();
+
+            var sceneData = SerializationManager.Load<SaveScopeData>(sceneScopeIdentity, SaveContext.instance.saveName);
+            var globalData = SerializationManager.Load<SaveScopeData>(globalScope, SaveContext.instance.saveName);
+
+            foreach (var go in scene.GetRootGameObjects())
+            {
+                LoadRecurse(go, sceneData, globalData, saveablePrefabRegistry);
+            }
+
+        }
+
+        private static void LoadRecurse(GameObject iterationPoint, SaveScopeData currentScope, SaveScopeData globalScope, SaveablePrefabRegistry prefabRegistry)
+        {
+            if(iterationPoint.GetComponent<GlobalSaveFlag>() != null)
+            {
+                LoadRecurse(iterationPoint, globalScope, globalScope, prefabRegistry);
+                return;
+            }
+
+            var saveables = iterationPoint.GetComponents<ISaveableData>();
+            foreach (var saveable in saveables)
+            {
+                if(currentScope.DataInScopeDictionary.TryGetValue(saveable.UniqueSaveIdentifier, out var saveData))
+                {
+                    saveable.SetupFromSaveObject(saveData.savedSerializableObject);
+                }
+            }
+
+            var prefabParent = iterationPoint.GetComponent<SaveablePrefabParent>();
+            if(prefabParent != null)
+            {
+                var childScopes = currentScope.childScopes
+                    .Where(scopeData =>
+                        scopeData.scopeIdentifier is PrefabSaveScopeIdentifier prefabIdentifier &&
+                        prefabIdentifier.prefabParentId == prefabParent.prefabParentName);
+                foreach (var childScopeData in currentScope.childScopes)
+                {
+                    if(!(childScopeData.scopeIdentifier is PrefabSaveScopeIdentifier prefabIdentifier) ||
+                        prefabIdentifier.prefabParentId != prefabParent.prefabParentName)
+                    {
+                        continue;
+                    }
+                    var prefab = prefabRegistry.GetUniqueObjectFromID(prefabIdentifier.prefabTypeId);
+                    var newInstance = Instantiate(prefab.prefab, prefabParent.transform);
+                    LoadRecurse(newInstance.gameObject, childScopeData, globalScope, prefabRegistry);
+                }
+                return;
+            }
+
+
+            foreach (Transform childTransform in iterationPoint.transform)
+            {
+                LoadRecurse(childTransform.gameObject, currentScope, globalScope, prefabRegistry);
+            }
+
         }
 
         public static List<SaveScopeData> GetTopLevelSaveScopeData(Scene sceneToSave)

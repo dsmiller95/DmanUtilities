@@ -292,21 +292,24 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                 Assert.AreEqual(3, prefabParentInScene.transform.childCount);
 
                 {
-                    Assert.AreEqual("first!", prefabParentInScene.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
-                    var prefabParentInPrefab = prefabParentInScene.transform.GetChild(0).GetComponentInChildren<SaveablePrefabParent>();
+                    var prefabInstance = prefabParentInScene.transform.GetChild(0);
+                    Assert.AreEqual("first!", prefabInstance.GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                    var prefabParentInPrefab = prefabInstance.GetComponentInChildren<SaveablePrefabParent>();
                     Assert.AreEqual(3, prefabParentInPrefab.transform.childCount);
                     Assert.AreEqual("first nested!", prefabParentInPrefab.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
                     Assert.AreEqual("second nested!", prefabParentInPrefab.transform.GetChild(1).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
                     Assert.AreEqual("third nested!", prefabParentInPrefab.transform.GetChild(2).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
                 }
                 {
-                    Assert.AreEqual("second prefab instance", prefabParentInScene.transform.GetChild(1).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
-                    var prefabParentInPrefab = prefabParentInScene.transform.GetChild(0).GetComponentInChildren<SaveablePrefabParent>();
+                    var prefabInstance = prefabParentInScene.transform.GetChild(1);
+                    Assert.AreEqual("second prefab instance", prefabInstance.GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                    var prefabParentInPrefab = prefabInstance.GetComponentInChildren<SaveablePrefabParent>();
                     Assert.AreEqual(0, prefabParentInPrefab.transform.childCount);
                 }
                 {
-                    Assert.AreEqual("third prefab instance", prefabParentInScene.transform.GetChild(2).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
-                    var prefabParentInPrefab = prefabParentInScene.transform.GetChild(0).GetComponentInChildren<SaveablePrefabParent>();
+                    var prefabInstance = prefabParentInScene.transform.GetChild(2);
+                    Assert.AreEqual("third prefab instance", prefabInstance.GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                    var prefabParentInPrefab = prefabInstance.GetComponentInChildren<SaveablePrefabParent>();
                     Assert.AreEqual(2, prefabParentInPrefab.transform.childCount);
                     Assert.AreEqual("first third nested!", prefabParentInPrefab.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
                     Assert.AreEqual("second third nested!", prefabParentInPrefab.transform.GetChild(1).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
@@ -339,5 +342,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
         }
 
         // TODO: test that global scope save data is transferred between scenes
+        // TODO: test the global scope is reconciled between scenes when not every property is saved in every scene
+        // TODO: remove dependencies from saveable
     }
 }
