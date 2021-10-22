@@ -41,9 +41,11 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                 scenePath = testScene.path
             };
 
-            SaveContext.instance.saveName = "test_save";
 
             yield return new EnterPlayMode();
+
+            SaveContext.instance.saveName = "test_save";
+            WorldSaveManager.DeleteSaveData();
 
 
             var saveables = GameObject.FindObjectsOfType<SimpleSaveable>();
@@ -85,6 +87,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
             Object.DestroyImmediate(testSceneAsset);
             Object.DestroyImmediate(prefabRegistry);
+            WorldSaveManager.DeleteSaveData();
 
             // Use the Assert class to test conditions.
             // Use yield to skip a frame.
@@ -144,9 +147,10 @@ namespace Dman.SceneSaveSystem.EditmodeTests
             saveManager.saveablePrefabRegistry = prefabRegistry;
 
 
-            SaveContext.instance.saveName = "test_save";
-
             yield return new EnterPlayMode();
+
+            SaveContext.instance.saveName = "test_save";
+            WorldSaveManager.DeleteSaveData();
 
             saveablePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/topLevel_prefab.prefab");
             var prefabParent = GameObject.FindObjectOfType<SaveablePrefabParent>();
@@ -199,6 +203,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
             AssetDatabase.DeleteAsset("Assets/topLevel_type.asset");
             AssetDatabase.DeleteAsset("Assets/topLevel_prefab.prefab");
+            WorldSaveManager.DeleteSaveData();
 
             // Use the Assert class to test conditions.
             // Use yield to skip a frame.
@@ -242,9 +247,9 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                 saveManager.saveablePrefabRegistry = prefabRegistry;
 
 
-                SaveContext.instance.saveName = "test_save";
-
                 yield return new EnterPlayMode();
+                SaveContext.instance.saveName = "test_save";
+                WorldSaveManager.DeleteSaveData();
 
                 topLevelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/topLevel_prefab.prefab");
                 nestedPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/nested_prefab.prefab");
@@ -327,6 +332,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                 AssetDatabase.DeleteAsset("Assets/topLevel_prefab.prefab");
                 AssetDatabase.DeleteAsset("Assets/nested_type.asset");
                 AssetDatabase.DeleteAsset("Assets/nested_prefab.prefab");
+                WorldSaveManager.DeleteSaveData();
             }
 
 
@@ -341,7 +347,167 @@ namespace Dman.SceneSaveSystem.EditmodeTests
             nextNestedPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = savedData;
         }
 
-        // TODO: test that global scope save data is transferred between scenes
+        [UnityTest]
+        public IEnumerator RetainsOnlyGlobalScopeDataBetweenScenes()
+        {
+            var prefabRegistry = ScriptableObject.CreateInstance<SaveablePrefabRegistry>();
+
+            var oldSceneBuilds = EditorBuildSettings.scenes.ToList().ToArray();
+            try
+            {
+
+
+                {
+                    // setup scene A
+                    var testSceneA = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                    var savedObject1 = new GameObject("save object 1");
+                    var saveable1 = savedObject1.AddComponent<SimpleSaveable>();
+                    saveable1.MySavedData = "I am save data 1 in scene A";
+
+                    var savedObject2 = new GameObject("save object two");
+                    savedObject2.AddComponent<GlobalSaveFlag>();
+                    var saveable2 = savedObject2.AddComponent<SimpleSaveable>();
+                    saveable2.MySavedData = "I am save data two";
+                    saveable2.uniqueNameInScope = "unique";
+
+                    var saveManagerObject = new GameObject("save manager");
+                    var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
+
+                    saveManager.saveablePrefabRegistry = prefabRegistry;
+
+                    saveManager.saveLoadScene = new Utilities.SceneReference()
+                    {
+                        scenePath = $"Assets/SceneA.unity"
+                    };
+                    testSceneA.name = "SceneA";
+                    EditorSceneManager.SaveScene(testSceneA, $"Assets/SceneA.unity");
+                }
+
+                {
+                    // setup scene B
+                    var testSceneB = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+
+                    var savedObject1 = new GameObject("save object 1");
+                    var saveable1 = savedObject1.AddComponent<SimpleSaveable>();
+                    saveable1.MySavedData = "I am save data 1 in scene B";
+
+                    var savedObject2 = new GameObject("save object two");
+                    savedObject2.AddComponent<GlobalSaveFlag>();
+                    var saveable2 = savedObject2.AddComponent<SimpleSaveable>();
+                    saveable2.MySavedData = "I am save data two. but Scene B!";
+                    saveable2.uniqueNameInScope = "unique";
+
+                    var saveManagerObject = new GameObject("save manager");
+                    var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
+
+                    saveManager.saveablePrefabRegistry = prefabRegistry;
+
+                    saveManager.saveLoadScene = new Utilities.SceneReference()
+                    {
+                        scenePath = $"Assets/SceneB.unity"
+                    };
+                    testSceneB.name = "SceneB";
+                    EditorSceneManager.SaveScene(testSceneB, $"Assets/SceneB.unity");
+                }
+
+                EditorBuildSettings.scenes = new EditorBuildSettingsScene[]
+                {
+                    new EditorBuildSettingsScene("Assets/SceneA.unity", true),
+                    new EditorBuildSettingsScene("Assets/SceneB.unity", true)
+                };
+
+                var activeScene = EditorSceneManager.OpenScene("Assets/SceneA.unity", OpenSceneMode.Single);
+
+                yield return new EnterPlayMode();
+
+                {
+                    SaveContext.instance.saveName = "test_save";
+                    WorldSaveManager.DeleteSaveData();
+
+                    // modify and save scene A
+                    var saveables = GameObject.FindObjectsOfType<SimpleSaveable>();
+
+                    var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+                    Assert.NotNull(saveManager);
+                    var saveable1 = saveables.Where(x => x.gameObject.name == "save object 1").FirstOrDefault();
+                    Assert.NotNull(saveable1);
+                    var saveable2 = saveables.Where(x => x.gameObject.name == "save object two").FirstOrDefault();
+                    Assert.NotNull(saveable2);
+
+                    Assert.AreEqual("I am save data 1 in scene A", saveable1.MySavedData);
+                    saveable1.MySavedData = "my save data has changed!";
+                    Assert.AreEqual("I am save data two", saveable2.MySavedData);
+                    saveable2.MySavedData = "my global save data is different!";
+
+                    saveManager.Save();
+
+                    Assert.AreEqual("my save data has changed!", saveable1.MySavedData);
+                    Assert.AreEqual("my global save data is different!", saveable2.MySavedData);
+
+                    yield return saveManager.LoadCoroutine("Assets/SceneB.unity");
+                    yield return null;
+                }
+
+                {
+                    // Assert global save data, modify and save scene B
+                    var saveables = GameObject.FindObjectsOfType<SimpleSaveable>();
+
+                    var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+                    Assert.NotNull(saveManager);
+                    var saveable1 = saveables.Where(x => x.gameObject.name == "save object 1").FirstOrDefault();
+                    Assert.NotNull(saveable1);
+                    var saveable2 = saveables.Where(x => x.gameObject.name == "save object two").FirstOrDefault();
+                    Assert.NotNull(saveable2);
+
+                    Assert.AreEqual("I am save data 1 in scene B", saveable1.MySavedData);
+                    Assert.AreEqual("my global save data is different!", saveable2.MySavedData);
+                    saveable2.MySavedData = "my global save data is different... again";
+
+                    saveManager.Save();
+
+                    yield return saveManager.LoadCoroutine("Assets/SceneA.unity");
+                    yield return null;
+                }
+
+                {
+                    // Assert save data changes from global and scene A
+                    var saveables = GameObject.FindObjectsOfType<SimpleSaveable>();
+
+                    var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+                    Assert.NotNull(saveManager);
+                    var saveable1 = saveables.Where(x => x.gameObject.name == "save object 1").FirstOrDefault();
+                    Assert.NotNull(saveable1);
+                    var saveable2 = saveables.Where(x => x.gameObject.name == "save object two").FirstOrDefault();
+                    Assert.NotNull(saveable2);
+
+                    Assert.AreEqual("my save data has changed!", saveable1.MySavedData);
+                    Assert.AreEqual("my global save data is different... again", saveable2.MySavedData);
+
+                    yield return null;
+                }
+
+                yield return new ExitPlayMode();
+                yield return null;
+
+            }
+            finally
+            {
+                EditorBuildSettings.scenes = oldSceneBuilds;
+
+                Object.DestroyImmediate(prefabRegistry);
+
+                AssetDatabase.DeleteAsset("Assets/SceneA.unity");
+                AssetDatabase.DeleteAsset("Assets/SceneB.unity");
+                WorldSaveManager.DeleteSaveData();
+            }
+
+            // Use the Assert class to test conditions.
+            // Use yield to skip a frame.
+            yield return null;
+        }
+
         // TODO: test the global scope is reconciled between scenes when not every property is saved in every scene
         // TODO: remove dependencies from saveable
     }

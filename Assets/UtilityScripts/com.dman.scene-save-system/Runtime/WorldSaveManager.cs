@@ -14,6 +14,10 @@ namespace Dman.SceneSaveSystem
         public SceneReference saveLoadScene;
         public string gameobjectSaveRootFileName = "objects.dat";
 
+        public static void DeleteSaveData()
+        {
+            SerializationManager.DeleteAll(SaveContext.instance.saveName);
+        }
 
         /// <summary>
         /// Save all ISaveableData in the scene, but not a child of a SaveablePrefab.
@@ -57,19 +61,28 @@ namespace Dman.SceneSaveSystem
         ///     parent identifyer in the save object. load all saveable data for each prefab into the prefab instance as each
         ///     is instantiated.
         /// </summary>
-        public void Load()
+        public void Load(string scenePath = null)
         {
-            StartCoroutine(LoadCoroutine());
+            StartCoroutine(LoadCoroutine(scenePath));
         }
 
-        public IEnumerator LoadCoroutine()
+        public IEnumerator LoadCoroutine(string scenePath = null)
         {
             var worldSaveData = SerializationManager.Load<MasterSaveObject>(gameobjectSaveRootFileName, SaveContext.instance.saveName);
 
             SaveSystemHooks.TriggerPreLoad();
             DontDestroyOnLoad(gameObject);
-            var sceneIndexToLoad = SceneUtility.GetBuildIndexByScenePath(saveLoadScene.scenePath);
-            var loadingScene = SceneManager.LoadScene(sceneIndexToLoad, new LoadSceneParameters(LoadSceneMode.Single));
+            scenePath = scenePath ?? saveLoadScene.scenePath;
+            var sceneIndexToLoad = SceneUtility.GetBuildIndexByScenePath(scenePath);
+            Scene loadingScene;
+            if(sceneIndexToLoad >= 0)
+            {
+                loadingScene = SceneManager.LoadScene(sceneIndexToLoad, new LoadSceneParameters(LoadSceneMode.Single));
+            }else
+            {
+                var sceneNameToLoad = SceneNameFromPath(scenePath);
+                loadingScene = SceneManager.LoadScene(sceneNameToLoad, new LoadSceneParameters(LoadSceneMode.Single));
+            }
             yield return new WaitUntil(() => loadingScene.isLoaded);
 
 
@@ -81,6 +94,11 @@ namespace Dman.SceneSaveSystem
             SaveSystemHooks.TriggerPostLoad();
             Destroy(gameObject);
         }
+        private static string SceneNameFromPath(string path)
+        {
+            return System.IO.Path.GetFileNameWithoutExtension(path);
+        }
+
 
         public static void LoadIntoSingleScene(Scene scene, SaveablePrefabRegistry saveablePrefabRegistry)
         {
@@ -92,53 +110,62 @@ namespace Dman.SceneSaveSystem
 
             foreach (var go in scene.GetRootGameObjects())
             {
-                LoadRecurse(go, sceneData, globalData, saveablePrefabRegistry);
+                LoadRecurse(go, sceneData, globalData, saveablePrefabRegistry, new SaveTreeContext());
             }
 
         }
 
-        private static void LoadRecurse(GameObject iterationPoint, SaveScopeData currentScope, SaveScopeData globalScope, SaveablePrefabRegistry prefabRegistry)
+        private static void LoadRecurse(GameObject iterationPoint, SaveScopeData currentScope, SaveScopeData globalScope, SaveablePrefabRegistry prefabRegistry, SaveTreeContext treeContext)
         {
-            if(iterationPoint.GetComponent<GlobalSaveFlag>() != null)
+            if(iterationPoint.GetComponent<GlobalSaveFlag>() != null && !treeContext.isGlobal)
             {
-                LoadRecurse(iterationPoint, globalScope, globalScope, prefabRegistry);
+                if(currentScope != null && !(currentScope.scopeIdentifier is SceneSaveScopeIdentifier))
+                {
+                    Debug.LogError("Global save flag detected on a prefab game object instantiated outside of global scope. Either remove the global flag on the prefab, or make sure that it is instantiated under a parent in the global scope", iterationPoint);
+                    throw new System.Exception("Bad save scene format");
+                }
+                treeContext.isGlobal = true;
+                LoadRecurse(iterationPoint, globalScope, globalScope, prefabRegistry, treeContext);
                 return;
             }
 
-            var saveables = iterationPoint.GetComponents<ISaveableData>();
-            foreach (var saveable in saveables)
+            if (currentScope != null) // don't try to load any data if there is no current scope. wait until global scope is encountered
             {
-                if(currentScope.DataInScopeDictionary.TryGetValue(saveable.UniqueSaveIdentifier, out var saveData))
+                var saveables = iterationPoint.GetComponents<ISaveableData>();
+                foreach (var saveable in saveables)
                 {
-                    saveable.SetupFromSaveObject(saveData.savedSerializableObject);
-                }
-            }
-
-            var prefabParent = iterationPoint.GetComponent<SaveablePrefabParent>();
-            if(prefabParent != null)
-            {
-                var childScopes = currentScope.childScopes
-                    .Where(scopeData =>
-                        scopeData.scopeIdentifier is PrefabSaveScopeIdentifier prefabIdentifier &&
-                        prefabIdentifier.prefabParentId == prefabParent.prefabParentName);
-                foreach (var childScopeData in currentScope.childScopes)
-                {
-                    if(!(childScopeData.scopeIdentifier is PrefabSaveScopeIdentifier prefabIdentifier) ||
-                        prefabIdentifier.prefabParentId != prefabParent.prefabParentName)
+                    if (currentScope.DataInScopeDictionary.TryGetValue(saveable.UniqueSaveIdentifier, out var saveData))
                     {
-                        continue;
+                        saveable.SetupFromSaveObject(saveData.savedSerializableObject);
                     }
-                    var prefab = prefabRegistry.GetUniqueObjectFromID(prefabIdentifier.prefabTypeId);
-                    var newInstance = Instantiate(prefab.prefab, prefabParent.transform);
-                    LoadRecurse(newInstance.gameObject, childScopeData, globalScope, prefabRegistry);
                 }
-                return;
+
+                var prefabParent = iterationPoint.GetComponent<SaveablePrefabParent>();
+                if (prefabParent != null)
+                {
+                    var childScopes = currentScope.childScopes
+                        .Where(scopeData =>
+                            scopeData.scopeIdentifier is PrefabSaveScopeIdentifier prefabIdentifier &&
+                            prefabIdentifier.prefabParentId == prefabParent.prefabParentName);
+                    foreach (var childScopeData in currentScope.childScopes)
+                    {
+                        if (!(childScopeData.scopeIdentifier is PrefabSaveScopeIdentifier prefabIdentifier) ||
+                            prefabIdentifier.prefabParentId != prefabParent.prefabParentName)
+                        {
+                            continue;
+                        }
+                        var prefab = prefabRegistry.GetUniqueObjectFromID(prefabIdentifier.prefabTypeId);
+                        var newInstance = Instantiate(prefab.prefab, prefabParent.transform);
+                        LoadRecurse(newInstance.gameObject, childScopeData, globalScope, prefabRegistry, treeContext);
+                    }
+                    return;
+                }
             }
 
 
             foreach (Transform childTransform in iterationPoint.transform)
             {
-                LoadRecurse(childTransform.gameObject, currentScope, globalScope, prefabRegistry);
+                LoadRecurse(childTransform.gameObject, currentScope, globalScope, prefabRegistry, treeContext);
             }
 
         }

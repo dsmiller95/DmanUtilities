@@ -8,6 +8,8 @@ namespace Dman.SceneSaveSystem
     {
 
         public static string saveFileSuffix = ".dat";
+
+
         public static bool Save<T>(ISaveScopeIdentifier saveScope, string saveName, T saveData)
         {
             return Save(saveScope.UniqueSemiReadableName + saveFileSuffix, saveName, saveData);
@@ -51,7 +53,20 @@ namespace Dman.SceneSaveSystem
             return Path.Combine(Application.persistentDataPath, "saves", saveName, saveFile);
         }
 
-        public static void DeleteAll(string saveName, params string[] saveFiles)
+        public static void DeleteAll(string saveName)
+        {
+            var saveFolderPath = Path.Combine(Application.persistentDataPath, "saves");
+            if (!Directory.Exists(saveFolderPath))
+            {
+                Directory.CreateDirectory(saveFolderPath);
+            }
+            var specificSaveDirectoryPath = Path.Combine(saveFolderPath, saveName);
+            if (Directory.Exists(specificSaveDirectoryPath))
+            {
+                Directory.Delete(specificSaveDirectoryPath, true);
+            }
+        }
+        public static void DeleteChunks(string saveName, params string[] saveFiles)
         {
             foreach (var file in saveFiles)
             {
