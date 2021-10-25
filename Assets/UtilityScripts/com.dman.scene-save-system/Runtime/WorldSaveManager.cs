@@ -140,6 +140,13 @@ namespace Dman.SceneSaveSystem
                 var prefabParent = iterationPoint.GetComponent<SaveablePrefabParent>();
                 if (prefabParent != null)
                 {
+                    foreach (Transform transform in prefabParent.gameObject.transform)
+                    {
+                        if (transform.GetComponent<SaveablePrefab>())
+                        {
+                            GameObject.Destroy(transform.gameObject);
+                        }
+                    }
                     foreach (var childScopeData in currentScope.childScopes)
                     {
                         if (!(childScopeData.scopeIdentifier is PrefabSaveScopeIdentifier prefabIdentifier) ||
