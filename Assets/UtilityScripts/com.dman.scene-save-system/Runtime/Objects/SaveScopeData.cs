@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using Dman.SceneSaveSystem.Objects.Identifiers;
+using System.Collections.Generic;
 using System.Linq;
 
-namespace Dman.SceneSaveSystem
+namespace Dman.SceneSaveSystem.Objects
 {
     [System.Serializable]
-    public class SaveScopeData : ISaveDataPiece
+    internal class SaveScopeData : ISaveDataPiece
     {
         public ISaveScopeIdentifier scopeIdentifier;
         public List<SaveData> dataInScope;

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Dman.SceneSaveSystem
+namespace Dman.SceneSaveSystem.Objects.Identifiers
 {
     [Serializable]
-    public class PrefabSaveScopeIdentifier : ISaveScopeIdentifier
+    internal class PrefabSaveScopeIdentifier : ISaveScopeIdentifier
     {
         public int prefabTypeId;
         public string prefabParentId;

@@ -12,26 +12,5 @@ namespace Dman.SceneSaveSystem
     public class SaveablePrefab : MonoBehaviour
     {
         public SaveablePrefabType myPrefabType;
-
-        public SavedPrefab GetPrefabSaveData()
-        {
-            var saveDataList = GetComponentsInChildren<ISaveableData>()
-                    .Select(x => new SaveData
-                    {
-                        savedSerializableObject = x.GetSaveObject(),
-                        uniqueSaveDataId = x.UniqueSaveIdentifier
-                    }).ToList();
-            var result = new SavedPrefab();
-
-            var parent = transform.parent.gameObject.GetComponent<SaveablePrefabParent>();
-            if (parent == null)
-            {
-                Debug.LogError($"prefab not directly underneath prefab parent, no parent found in {transform.parent.gameObject}");
-            }
-            result.prefabParentId = parent.prefabParentName;
-            result.prefabTypeId = myPrefabType.myId;
-            result.saveData = saveDataList.ToArray();
-            return result;
-        }
     }
 }

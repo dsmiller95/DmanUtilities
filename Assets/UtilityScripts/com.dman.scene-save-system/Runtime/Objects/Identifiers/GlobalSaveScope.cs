@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Dman.SceneSaveSystem
+namespace Dman.SceneSaveSystem.Objects.Identifiers
 {
     [Serializable]
-    public class GlobalSaveScopeIdentifier : ISaveScopeIdentifier
+    internal class GlobalSaveScopeIdentifier : ISaveScopeIdentifier
     {
         public string UniqueSemiReadableName => $"Globals";
 

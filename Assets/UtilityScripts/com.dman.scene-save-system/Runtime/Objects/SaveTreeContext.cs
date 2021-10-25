@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Dman.SceneSaveSystem
+namespace Dman.SceneSaveSystem.Objects
 {
-    public class SaveTreeContext
+    internal class SaveTreeContext
     {
         /// <summary>
         /// set to true if the root of the current scope tree is a global scope

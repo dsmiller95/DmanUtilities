@@ -1,10 +1,10 @@
 ﻿using System;
 using UnityEngine.SceneManagement;
 
-namespace Dman.SceneSaveSystem
+namespace Dman.SceneSaveSystem.Objects.Identifiers
 {
     [Serializable]
-    public class SceneSaveScopeIdentifier : ISaveScopeIdentifier
+    internal class SceneSaveScopeIdentifier : ISaveScopeIdentifier
     {
         public string scenePath;
         public string sceneName;

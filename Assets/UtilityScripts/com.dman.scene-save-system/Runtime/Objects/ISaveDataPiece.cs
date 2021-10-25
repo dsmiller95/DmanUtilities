@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Dman.SceneSaveSystem
+namespace Dman.SceneSaveSystem.Objects
 {
-    public interface ISaveDataPiece
+    internal interface ISaveDataPiece
     {
     }
 }

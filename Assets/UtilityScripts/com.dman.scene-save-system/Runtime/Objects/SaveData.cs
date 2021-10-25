@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace Dman.SceneSaveSystem
+namespace Dman.SceneSaveSystem.Objects
 {
     [Serializable]
-    public class SaveData : ISaveDataPiece
+    internal class SaveData : ISaveDataPiece
     {
         public string uniqueSaveDataId;
         public object savedSerializableObject;

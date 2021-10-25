@@ -1,4 +1,6 @@
-﻿using Dman.Utilities;
+﻿using Dman.SceneSaveSystem.Objects;
+using Dman.SceneSaveSystem.Objects.Identifiers;
+using Dman.Utilities;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -86,7 +88,7 @@ namespace Dman.SceneSaveSystem
 
             LoadIntoSingleScene(loadingScene, saveablePrefabRegistry);
             SaveSystemHooks.TriggerPostLoad();
-            yield return new WaitForEndOfFrame();
+            yield return null;
             Destroy(gameObject);
         }
         private static string SceneNameFromPath(string path)
@@ -174,7 +176,7 @@ namespace Dman.SceneSaveSystem
 
         }
 
-        public static List<SaveScopeData> GetTopLevelSaveScopeData(Scene sceneToSave)
+        private static List<SaveScopeData> GetTopLevelSaveScopeData(Scene sceneToSave)
         {
             var sceneScopeData = new SaveScopeData(new SceneSaveScopeIdentifier(sceneToSave));
             var globalScopeData = new SaveScopeData(new GlobalSaveScopeIdentifier());
