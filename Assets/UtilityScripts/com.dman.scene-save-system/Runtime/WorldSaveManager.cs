@@ -37,7 +37,16 @@ namespace Dman.SceneSaveSystem
             var globalScope = saveScopes.FirstOrDefault(x => x.scopeIdentifier is GlobalSaveScopeIdentifier);
             var sceneScope = saveScopes.FirstOrDefault(x => x.scopeIdentifier is SceneSaveScopeIdentifier);
 
-            var oldGlobalScope = SerializationManager.Load<SaveScopeData>(globalScope.scopeIdentifier, SaveContext.instance.saveName);
+            SaveScopeData oldGlobalScope;
+            try
+            {
+                oldGlobalScope = SerializationManager.Load<SaveScopeData>(globalScope.scopeIdentifier, SaveContext.instance.saveName);
+            }
+            catch
+            {
+                oldGlobalScope = null;
+            }
+
             if(oldGlobalScope == null)
             {
                 oldGlobalScope = globalScope;
