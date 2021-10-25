@@ -11,12 +11,5 @@
         public string UniqueSaveIdentifier { get; }
         object GetSaveObject();
         void SetupFromSaveObject(object save);
-        /// <summary>
-        /// TODO: test
-        /// All dependencies are going to have their save data loaded before this loads its data.
-        ///     this only applies inside of scene, and prefabs.
-        /// </summary>
-        /// <returns></returns>
-        ISaveableData[] GetDependencies();
     }
 }

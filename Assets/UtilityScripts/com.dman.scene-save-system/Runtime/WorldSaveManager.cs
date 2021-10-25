@@ -19,19 +19,18 @@ namespace Dman.SceneSaveSystem
             SerializationManager.DeleteAll(SaveContext.instance.saveName);
         }
 
+        public void SaveActiveScene()
+        {
+            this.Save(SceneManager.GetActiveScene());
+        }
+
         /// <summary>
         /// Save all ISaveableData in the scene, but not a child of a SaveablePrefab.
         /// then find all saveablePrefabs, and get their identifying information and all the information of the 
         ///     components inside each prefab. save all of these as a list
         /// </summary>
-        public void Save(Scene sceneToSave = default)
+        public void Save(Scene sceneToSave)
         {
-            if (sceneToSave == default)
-            {
-                sceneToSave = SceneManager.GetActiveScene();
-            }
-            //var saveDataObject = GetMasterSaveObject(sceneToSave);
-
             var saveScopes = GetTopLevelSaveScopeData(sceneToSave);
             var globalScope = saveScopes.FirstOrDefault(x => x.scopeIdentifier is GlobalSaveScopeIdentifier);
             var sceneScope = saveScopes.FirstOrDefault(x => x.scopeIdentifier is SceneSaveScopeIdentifier);
@@ -46,11 +45,8 @@ namespace Dman.SceneSaveSystem
             }
 
             SaveSystemHooks.TriggerPreSave();
-
             SerializationManager.Save(sceneScope.scopeIdentifier, SaveContext.instance.saveName, sceneScope);
             SerializationManager.Save(globalScope.scopeIdentifier, SaveContext.instance.saveName, oldGlobalScope);
-
-            //SerializationManager.Save(gameobjectSaveRootFileName, SaveContext.instance.saveName, saveDataObject);
             SaveSystemHooks.TriggerPostSave();
         }
 
@@ -64,6 +60,10 @@ namespace Dman.SceneSaveSystem
         public void Load(string scenePath = null)
         {
             StartCoroutine(LoadCoroutine(scenePath));
+        }
+        public void LoadDefaultScene()
+        {
+            StartCoroutine(LoadCoroutine(null));
         }
 
         public IEnumerator LoadCoroutine(string scenePath = null)
@@ -85,9 +85,6 @@ namespace Dman.SceneSaveSystem
             }
             yield return new WaitUntil(() => loadingScene.isLoaded);
 
-
-
-            //LoadFromMasterSaveObjectIntoScene(worldSaveData, loadingScene, saveablePrefabRegistry);
 
             LoadIntoSingleScene(loadingScene, saveablePrefabRegistry);
 
@@ -200,8 +197,7 @@ namespace Dman.SceneSaveSystem
                     .Select(x => new SaveData
                     {
                         savedSerializableObject = x.GetSaveObject(),
-                        uniqueSaveDataId = x.UniqueSaveIdentifier,
-                        saveDataIDDependencies = x.GetDependencies().Select(x => x.UniqueSaveIdentifier).ToArray()
+                        uniqueSaveDataId = x.UniqueSaveIdentifier
                     }));
 
                 var prefabParent = nextObj.GetComponent<SaveablePrefabParent>();
@@ -228,8 +224,7 @@ namespace Dman.SceneSaveSystem
                     .Select(x => new SaveData
                     {
                         savedSerializableObject = x.GetSaveObject(),
-                        uniqueSaveDataId = x.UniqueSaveIdentifier,
-                        saveDataIDDependencies = x.GetDependencies().Select(x => x.UniqueSaveIdentifier).ToArray()
+                        uniqueSaveDataId = x.UniqueSaveIdentifier
                     }));
 
                 var prefabParent = nextObj.GetComponent<SaveablePrefabParent>();
@@ -290,8 +285,7 @@ namespace Dman.SceneSaveSystem
                 yield return new SaveData
                 {
                     savedSerializableObject = saveable.GetSaveObject(),
-                    uniqueSaveDataId = saveable.UniqueSaveIdentifier,
-                    saveDataIDDependencies = saveable.GetDependencies().Select(x => x.UniqueSaveIdentifier).ToArray()
+                    uniqueSaveDataId = saveable.UniqueSaveIdentifier
                 };
             }
 
@@ -312,137 +306,6 @@ namespace Dman.SceneSaveSystem
                 {
                     yield return datum;
                 }
-            }
-        }
-
-        public static MasterSaveObject GetMasterSaveObject(Scene sceneToSave)
-        {
-            var prefabsToSave = new List<SaveablePrefab>();
-
-            var rootObjects = sceneToSave.GetRootGameObjects();
-
-            var sceneSaveData = rootObjects
-                .SelectMany(x => GetSaveablesForParent(x.transform, prefabsToSave))
-                .Select(x => new SaveData
-                {
-                    savedSerializableObject = x.GetSaveObject(),
-                    uniqueSaveDataId = x.UniqueSaveIdentifier,
-                    saveDataIDDependencies = x.GetDependencies().Select(x => x.UniqueSaveIdentifier).ToArray()
-                }).ToList();
-            SortSavedDatasBasedOnInterdependencies(sceneSaveData);
-
-            var savedPrefabData = prefabsToSave
-                .Select(x =>
-                {
-                    try
-                    {
-                        return x.GetPrefabSaveData();
-                    }
-                    catch (System.Exception)
-                    {
-                        Debug.LogError($"Error saving data inside {x}");
-                        throw;
-                    }
-                });
-
-            return new MasterSaveObject
-            {
-                sceneSaveData = sceneSaveData.ToArray(),
-                sceneSavedPrefabInstances = savedPrefabData.ToArray()
-            };
-        }
-        public static void LoadFromMasterSaveObjectIntoScene(MasterSaveObject saveObject, Scene sceneToLoadTo, SaveablePrefabRegistry prefabRegistry)
-        {
-            Debug.Log($"loading from save post-scene-reload");
-            var rootObjects = sceneToLoadTo.GetRootGameObjects();
-
-            foreach (var prefabRootExistingInScene in rootObjects.SelectMany(x => x.GetComponentsInChildren<SaveablePrefab>(true)))
-            {
-                DestroyImmediate(prefabRootExistingInScene.gameObject);
-            }
-            AssignSaveDataToChildren(rootObjects.Select(x => x.transform), saveObject.sceneSaveData);
-
-            var prefabParentDictionary = rootObjects
-                .SelectMany(x => x.GetComponentsInChildren<SaveablePrefabParent>(true))
-                .ToDictionary(x => x.prefabParentName);
-            foreach (var savedPrefab in saveObject.sceneSavedPrefabInstances)
-            {
-                if (!prefabParentDictionary.TryGetValue(savedPrefab.prefabParentId, out var prefabParent))
-                {
-                    Debug.LogError($"No prefab parent found of ID {savedPrefab.prefabParentId}");
-                }
-                var prefab = prefabRegistry.GetUniqueObjectFromID(savedPrefab.prefabTypeId);
-                var newInstance = Instantiate(prefab.prefab, prefabParent.transform);
-
-                AssignSaveDataToChildren(new[] { newInstance.transform }, savedPrefab.saveData);
-            }
-        }
-
-        private static IEnumerable<ISaveableData> GetSaveablesForParent(Transform initialTransform, List<SaveablePrefab> prefabList = null)
-        {
-            return DepthFirstRecurseTraverseAvoidingPrefabs(initialTransform, prefabList).SelectMany(x => x);
-        }
-
-        private static IEnumerable<ISaveableData[]> DepthFirstRecurseTraverseAvoidingPrefabs(Transform initialTransform, List<SaveablePrefab> prefabList = null)
-        {
-            var transformIterationStack = new Stack<Transform>();
-            transformIterationStack.Push(initialTransform);
-
-            while (transformIterationStack.Count > 0)
-            {
-                var currentTransform = transformIterationStack.Pop();
-
-                var saveable = currentTransform.GetComponents<ISaveableData>();
-                if (saveable != null && saveable.Length > 0)
-                {
-                    yield return saveable;
-                }
-                foreach (Transform child in currentTransform)
-                {
-                    var childPrefab = child.GetComponent<SaveablePrefab>();
-                    if (childPrefab != null)
-                    {
-                        prefabList?.Add(childPrefab);
-                        continue;
-                    }
-                    transformIterationStack.Push(child);
-                }
-            }
-        }
-
-        internal static void SortSavedDatasBasedOnInterdependencies(List<SaveData> datas)
-        {
-            datas.Sort((a, b) =>
-            {
-                var aDependsOnB = a.saveDataIDDependencies.Contains(b.uniqueSaveDataId);
-                var bDependsOnA = b.saveDataIDDependencies.Contains(a.uniqueSaveDataId);
-                if (aDependsOnB && bDependsOnA)
-                {
-                    throw new System.Exception("Circular dependency detected!");
-                }
-                if (aDependsOnB)
-                {
-                    return -1;
-                }
-                if (bDependsOnA)
-                {
-                    return 1;
-                }
-                return 0;
-            });
-        }
-
-
-        private static void AssignSaveDataToChildren(IEnumerable<Transform> roots, SaveData[] orderedSaveData)
-        {
-            var saveableChildren = roots.SelectMany(x => GetSaveablesForParent(x)).ToDictionary(x => x.UniqueSaveIdentifier);
-            foreach (var saveData in orderedSaveData)
-            {
-                if (!saveableChildren.TryGetValue(saveData.uniqueSaveDataId, out var saveable))
-                {
-                    Debug.LogError($"No matching saveable for {saveData.uniqueSaveDataId}");
-                }
-                saveable.SetupFromSaveObject(saveData.savedSerializableObject);
             }
         }
     }

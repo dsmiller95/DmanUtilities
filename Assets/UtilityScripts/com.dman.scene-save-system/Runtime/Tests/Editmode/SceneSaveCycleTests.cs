@@ -61,7 +61,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
             saveable1.MySavedData = "my save data has changed!";
             Assert.AreEqual("I am save data two", saveable2.MySavedData);
 
-            saveManager.Save();
+            saveManager.SaveActiveScene();
 
             saveable2.MySavedData = "my save data has changed, two!!";
             Assert.AreEqual("my save data has changed!", saveable1.MySavedData);
@@ -178,7 +178,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
             Assert.AreEqual("I am save data 1", saveable.MySavedData);
             saveable.MySavedData = "my save data has changed!";
 
-            saveManager.Save();
+            saveManager.SaveActiveScene();
 
             Assert.AreEqual("my save data has changed!", saveable.MySavedData);
 
@@ -288,7 +288,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                 saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
                 Assert.NotNull(saveManager);
 
-                saveManager.Save();
+                saveManager.SaveActiveScene();
 
                 yield return saveManager.LoadCoroutine();
                 yield return null;
@@ -455,7 +455,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                     Assert.AreEqual("I am save data three!", saveable3.MySavedData);
                     saveable3.MySavedData = "my special global data is different!";
 
-                    saveManager.Save();
+                    saveManager.SaveActiveScene();
 
                     Assert.AreEqual("my save data has changed!", saveable1.MySavedData);
                     Assert.AreEqual("my global save data is different!", saveable2.MySavedData);
@@ -480,7 +480,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                     Assert.AreEqual("my global save data is different!", saveable2.MySavedData);
                     saveable2.MySavedData = "my global save data is different... again";
 
-                    saveManager.Save();
+                    saveManager.SaveActiveScene();
 
                     yield return saveManager.LoadCoroutine("Assets/SceneA.unity");
                     yield return null;
@@ -616,7 +616,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                     var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
 
-                    saveManager.Save();
+                    saveManager.SaveActiveScene();
 
                     yield return saveManager.LoadCoroutine("Assets/SceneB.unity");
                     yield return null;
@@ -639,7 +639,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                     Assert.AreEqual(0, prefabParent.transform.childCount);
 
-                    saveManager.Save();
+                    saveManager.SaveActiveScene();
 
                     yield return saveManager.LoadCoroutine("Assets/SceneA.unity");
                     yield return null;

@@ -44,9 +44,5 @@ namespace Dman.SceneSaveSystem.SharedSaveables
                 savedData.Apply(transform);
             }
         }
-        public ISaveableData[] GetDependencies()
-        {
-            return new ISaveableData[0];
-        }
     }
 }

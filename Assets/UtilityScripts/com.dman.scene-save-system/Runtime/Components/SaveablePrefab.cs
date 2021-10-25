@@ -19,10 +19,8 @@ namespace Dman.SceneSaveSystem
                     .Select(x => new SaveData
                     {
                         savedSerializableObject = x.GetSaveObject(),
-                        uniqueSaveDataId = x.UniqueSaveIdentifier,
-                        saveDataIDDependencies = x.GetDependencies().Select(x => x.UniqueSaveIdentifier).ToArray()
+                        uniqueSaveDataId = x.UniqueSaveIdentifier
                     }).ToList();
-            WorldSaveManager.SortSavedDatasBasedOnInterdependencies(saveDataList);
             var result = new SavedPrefab();
 
             var parent = transform.parent.gameObject.GetComponent<SaveablePrefabParent>();

@@ -7,6 +7,5 @@ namespace Dman.SceneSaveSystem
     {
         public string uniqueSaveDataId;
         public object savedSerializableObject;
-        public string[] saveDataIDDependencies;
     }
 }
