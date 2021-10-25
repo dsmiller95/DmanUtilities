@@ -68,8 +68,6 @@ namespace Dman.SceneSaveSystem
 
         public IEnumerator LoadCoroutine(string scenePath = null)
         {
-            var worldSaveData = SerializationManager.Load<MasterSaveObject>(gameobjectSaveRootFileName, SaveContext.instance.saveName);
-
             SaveSystemHooks.TriggerPreLoad();
             DontDestroyOnLoad(gameObject);
             scenePath = scenePath ?? saveLoadScene.scenePath;
@@ -87,8 +85,8 @@ namespace Dman.SceneSaveSystem
 
 
             LoadIntoSingleScene(loadingScene, saveablePrefabRegistry);
-
             SaveSystemHooks.TriggerPostLoad();
+            yield return new WaitForEndOfFrame();
             Destroy(gameObject);
         }
         private static string SceneNameFromPath(string path)
