@@ -1,6 +1,5 @@
 ﻿using Dman.SceneSaveSystem.Objects;
 using Dman.SceneSaveSystem.Objects.Identifiers;
-using Dman.Utilities;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,10 +46,11 @@ namespace Dman.SceneSaveSystem
                 oldGlobalScope = null;
             }
 
-            if(oldGlobalScope == null)
+            if (oldGlobalScope == null)
             {
                 oldGlobalScope = globalScope;
-            }else
+            }
+            else
             {
                 oldGlobalScope.OverwriteWith(globalScope);
             }
@@ -100,12 +100,13 @@ namespace Dman.SceneSaveSystem
             var globalScope = new GlobalSaveScopeIdentifier();
             var globalData = SerializationManager.Load<SaveScopeData>(globalScope, SaveContext.instance.saveName);
 
-            if(scenePath == null)
+            if (scenePath == null)
             {
-                if(globalData.DataInScopeDictionary.TryGetValue(LastSavedSceneSaveDataId, out var saveData) && saveData.savedSerializableObject is SceneSaveScopeIdentifier savedScene)
+                if (globalData.DataInScopeDictionary.TryGetValue(LastSavedSceneSaveDataId, out var saveData) && saveData.savedSerializableObject is SceneSaveScopeIdentifier savedScene)
                 {
                     scenePath = savedScene.scenePath;
-                }else
+                }
+                else
                 {
                     Debug.LogError("Cannot load, invalid save format or no save data.");
                     throw new SaveFormatException("Bad save format. No last saved scene flag");
@@ -114,10 +115,11 @@ namespace Dman.SceneSaveSystem
 
             var sceneIndexToLoad = SceneUtility.GetBuildIndexByScenePath(scenePath);
             Scene loadingScene;
-            if(sceneIndexToLoad >= 0)
+            if (sceneIndexToLoad >= 0)
             {
                 loadingScene = SceneManager.LoadScene(sceneIndexToLoad, new LoadSceneParameters(LoadSceneMode.Single));
-            }else
+            }
+            else
             {
                 var sceneNameToLoad = SceneNameFromPath(scenePath);
                 loadingScene = SceneManager.LoadScene(sceneNameToLoad, new LoadSceneParameters(LoadSceneMode.Single));
@@ -151,9 +153,9 @@ namespace Dman.SceneSaveSystem
 
         private static void LoadRecurse(GameObject iterationPoint, SaveScopeData currentScope, SaveScopeData globalScope, SaveablePrefabRegistry prefabRegistry, SaveTreeContext treeContext)
         {
-            if(iterationPoint.GetComponent<GlobalSaveFlag>() != null && !treeContext.isGlobal)
+            if (iterationPoint.GetComponent<GlobalSaveFlag>() != null && !treeContext.isGlobal)
             {
-                if(currentScope != null && !(currentScope.scopeIdentifier is SceneSaveScopeIdentifier))
+                if (currentScope != null && !(currentScope.scopeIdentifier is SceneSaveScopeIdentifier))
                 {
                     Debug.LogError("Global save flag detected on a prefab game object instantiated outside of global scope. Either remove the global flag on the prefab, or make sure that it is instantiated under a parent in the global scope", iterationPoint);
                     throw new SaveFormatException("Bad save scene format");
@@ -193,7 +195,7 @@ namespace Dman.SceneSaveSystem
                             continue;
                         }
                         var prefab = prefabRegistry.GetUniqueObjectFromID(prefabIdentifier.prefabTypeId);
-                        if(prefab == null)
+                        if (prefab == null)
                         {
                             Debug.LogError($"No prefab found for prefab ID {prefabIdentifier.prefabTypeId}, did the prefab configuration change since the last save?", iterationPoint);
                             throw new System.Exception("Bad prefab fomat");

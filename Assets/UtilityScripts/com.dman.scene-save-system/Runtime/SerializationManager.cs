@@ -87,7 +87,7 @@ namespace Dman.SceneSaveSystem
             return Load<T>(saveScope.UniqueSemiReadableName + saveFileSuffix, saveName);
         }
 
-        public static T Load<T>(string saveFile, string saveName) where T: class
+        public static T Load<T>(string saveFile, string saveName) where T : class
         {
             var path = SerializationManager.GetSavePath(saveFile, saveName);
             if (!File.Exists(path))
@@ -101,7 +101,7 @@ namespace Dman.SceneSaveSystem
             try
             {
                 var resultObj = formatter.Deserialize(file);
-                if(resultObj is T castedResult)
+                if (resultObj is T castedResult)
                 {
                     return castedResult;
                 }

@@ -47,13 +47,13 @@ namespace Dman.SceneSaveSystem.Objects
             for (int i = 0; i < dataInScope.Count; i++)
             {
                 var current = dataInScope[i];
-                if(other.DataInScopeDictionary.TryGetValue(current.uniqueSaveDataId, out var replacementData))
+                if (other.DataInScopeDictionary.TryGetValue(current.uniqueSaveDataId, out var replacementData))
                 {
                     dataInScope[i] = replacementData;
                 }
             }
             // assuming all child scopes are prefab scopes. in practice, this is how the tree gets set up currently
-            if(!childScopes.All(x => x.scopeIdentifier is PrefabSaveScopeIdentifier) || !other.childScopes.All(x => x.scopeIdentifier is PrefabSaveScopeIdentifier))
+            if (!childScopes.All(x => x.scopeIdentifier is PrefabSaveScopeIdentifier) || !other.childScopes.All(x => x.scopeIdentifier is PrefabSaveScopeIdentifier))
             {
                 throw new System.NotImplementedException("Nested scopes of a type other than a prefab scope are not supported");
             }

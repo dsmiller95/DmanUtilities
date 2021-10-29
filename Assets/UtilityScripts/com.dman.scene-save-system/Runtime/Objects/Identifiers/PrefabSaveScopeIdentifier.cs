@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 
 namespace Dman.SceneSaveSystem.Objects.Identifiers
 {
@@ -28,7 +25,7 @@ namespace Dman.SceneSaveSystem.Objects.Identifiers
 
         public bool Equals(ISaveScopeIdentifier other)
         {
-            if(!(other is PrefabSaveScopeIdentifier casted))
+            if (!(other is PrefabSaveScopeIdentifier casted))
             {
                 return false;
             }

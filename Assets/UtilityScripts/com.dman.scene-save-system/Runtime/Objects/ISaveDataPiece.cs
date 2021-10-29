@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dman.SceneSaveSystem.Objects
+﻿namespace Dman.SceneSaveSystem.Objects
 {
     internal interface ISaveDataPiece
     {

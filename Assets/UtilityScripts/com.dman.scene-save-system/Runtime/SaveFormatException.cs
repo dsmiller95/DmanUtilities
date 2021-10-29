@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using UnityEngine;
-
-namespace Dman.SceneSaveSystem
+﻿namespace Dman.SceneSaveSystem
 {
     /// <summary>
     /// Thrown when the save file is formatted improperly. Could happen if trying to load
