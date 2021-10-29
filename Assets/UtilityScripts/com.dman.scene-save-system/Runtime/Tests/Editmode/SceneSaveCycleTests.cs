@@ -11,14 +11,12 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 {
     public class SceneSaveCycleTests
     {
-
         // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use
         // `yield return null;` to skip a frame.
         [UnityTest]
         public IEnumerator CyclesSimpleSaveablesAtTopLevelScope()
         {
             var testScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-
             var testSceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(testScene.path);
 
             var savedObject1 = new GameObject("save object 1");
@@ -35,11 +33,6 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
             var prefabRegistry = ScriptableObject.CreateInstance<SaveablePrefabRegistry>();
             saveManager.saveablePrefabRegistry = prefabRegistry;
-
-            saveManager.saveLoadScene = new Utilities.SceneReference()
-            {
-                scenePath = testScene.path
-            };
 
 
             yield return new EnterPlayMode();
@@ -67,7 +60,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
             Assert.AreEqual("my save data has changed!", saveable1.MySavedData);
             Assert.AreEqual("my save data has changed, two!!", saveable2.MySavedData);
 
-            yield return saveManager.LoadCoroutine();
+            yield return saveManager.LoadCoroutine("");
             yield return null;
 
             saveables = GameObject.FindObjectsOfType<SimpleSaveable>();
@@ -128,7 +121,6 @@ namespace Dman.SceneSaveSystem.EditmodeTests
         public IEnumerator CyclesWithSavedPrefabsAndSceneInitializedState()
         {
             var testScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-
             var testSceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(testScene.path);
 
             {
@@ -149,10 +141,6 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                 var saveManagerObject = new GameObject("save manager");
                 var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
-                saveManager.saveLoadScene = new Utilities.SceneReference()
-                {
-                    scenePath = testScene.path
-                };
 
                 saveManager.saveablePrefabRegistry = prefabRegistry;
             }
@@ -187,7 +175,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                 Assert.AreEqual("my save data has changed!", saveable.MySavedData);
 
-                yield return saveManager.LoadCoroutine();
+                yield return saveManager.LoadCoroutine("");
                 yield return null;
             }
             {
@@ -251,10 +239,6 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                 var saveManagerObject = new GameObject("save manager");
                 var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
-                saveManager.saveLoadScene = new Utilities.SceneReference()
-                {
-                    scenePath = testScene.path
-                };
 
                 saveManager.saveablePrefabRegistry = prefabRegistry;
 
@@ -296,7 +280,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                 saveManager.SaveActiveScene();
 
-                yield return saveManager.LoadCoroutine();
+                yield return saveManager.LoadCoroutine("");
                 yield return null;
 
                 saveables = GameObject.FindObjectsOfType<SimpleSaveable>();
@@ -392,10 +376,6 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                     saveManager.saveablePrefabRegistry = prefabRegistry;
 
-                    saveManager.saveLoadScene = new Utilities.SceneReference()
-                    {
-                        scenePath = $"Assets/SceneA.unity"
-                    };
                     testSceneA.name = "SceneA";
                     EditorSceneManager.SaveScene(testSceneA, $"Assets/SceneA.unity");
                 }
@@ -420,10 +400,6 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                     saveManager.saveablePrefabRegistry = prefabRegistry;
 
-                    saveManager.saveLoadScene = new Utilities.SceneReference()
-                    {
-                        scenePath = $"Assets/SceneB.unity"
-                    };
                     testSceneB.name = "SceneB";
                     EditorSceneManager.SaveScene(testSceneB, $"Assets/SceneB.unity");
                 }
@@ -564,10 +540,6 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                     var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
                     var prefabRegistry = AssetDatabase.LoadAssetAtPath<SaveablePrefabRegistry>("Assets/prefab_type_registry.asset");
                     saveManager.saveablePrefabRegistry = prefabRegistry;
-                    saveManager.saveLoadScene = new Utilities.SceneReference()
-                    {
-                        scenePath = $"Assets/SceneA.unity"
-                    };
 
                     testSceneA.name = "SceneA";
                     EditorSceneManager.SaveScene(testSceneA, $"Assets/SceneA.unity");
@@ -585,10 +557,6 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                     var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
                     var prefabRegistry = AssetDatabase.LoadAssetAtPath<SaveablePrefabRegistry>("Assets/prefab_type_registry.asset");
                     saveManager.saveablePrefabRegistry = prefabRegistry;
-                    saveManager.saveLoadScene = new Utilities.SceneReference()
-                    {
-                        scenePath = $"Assets/SceneB.unity"
-                    };
 
                     testSceneB.name = "SceneB";
                     EditorSceneManager.SaveScene(testSceneB, $"Assets/SceneB.unity");
@@ -677,6 +645,143 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                 AssetDatabase.DeleteAsset("Assets/topLevel_type.asset");
                 AssetDatabase.DeleteAsset("Assets/topLevel_prefab.prefab");
                 AssetDatabase.DeleteAsset("Assets/prefab_type_registry.asset");
+                WorldSaveManager.DeleteSaveData();
+            }
+
+            // Use the Assert class to test conditions.
+            // Use yield to skip a frame.
+            yield return null;
+        }
+
+
+        [UnityTest]
+        public IEnumerator RemembersLastSavedSceneWhenLoading()
+        {
+            var prefabRegistry = ScriptableObject.CreateInstance<SaveablePrefabRegistry>();
+
+            var oldSceneBuilds = EditorBuildSettings.scenes.ToList().ToArray();
+            try
+            {
+                {
+                    // setup scene A
+                    var testSceneA = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                    var savedObject1 = new GameObject("save object 1");
+                    var saveable1 = savedObject1.AddComponent<SimpleSaveable>();
+                    saveable1.MySavedData = "I am save data 1 in scene A";
+
+                    var saveManagerObject = new GameObject("save manager");
+                    var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
+
+                    saveManager.saveablePrefabRegistry = prefabRegistry;
+
+                    testSceneA.name = "SceneA";
+                    EditorSceneManager.SaveScene(testSceneA, $"Assets/SceneA.unity");
+                }
+
+                {
+                    // setup scene B
+                    var testSceneB = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                    var savedObject1 = new GameObject("save object 1");
+                    var saveable1 = savedObject1.AddComponent<SimpleSaveable>();
+                    saveable1.MySavedData = "I am save data 1 in scene B";
+
+                    var saveManagerObject = new GameObject("save manager");
+                    var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
+
+                    saveManager.saveablePrefabRegistry = prefabRegistry;
+
+                    testSceneB.name = "SceneB";
+                    EditorSceneManager.SaveScene(testSceneB, $"Assets/SceneB.unity");
+                }
+
+                EditorBuildSettings.scenes = new EditorBuildSettingsScene[]
+                {
+                    new EditorBuildSettingsScene("Assets/SceneA.unity", true),
+                    new EditorBuildSettingsScene("Assets/SceneB.unity", true)
+                };
+
+                var activeScene = EditorSceneManager.OpenScene("Assets/SceneA.unity", OpenSceneMode.Single);
+
+                yield return new EnterPlayMode();
+                SaveContext.instance.saveName = "test_save";
+                WorldSaveManager.DeleteSaveData();
+
+                {
+                    // modify and save scene A
+                    var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+                    Assert.NotNull(saveManager);
+                    var saveable1 = GameObject.FindObjectOfType<SimpleSaveable>();;
+                    Assert.NotNull(saveable1);
+
+                    Assert.AreEqual("I am save data 1 in scene A", saveable1.MySavedData);
+                    saveable1.MySavedData = "my save data has changed!";
+
+                    saveManager.SaveActiveScene();
+
+                    Assert.AreEqual("my save data has changed!", saveable1.MySavedData);
+
+                    yield return saveManager.LoadCoroutine("Assets/SceneB.unity");
+                    yield return null;
+                }
+
+                {
+                    // Modify and save scene B
+                    var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+                    Assert.NotNull(saveManager);
+                    var saveable1 = GameObject.FindObjectOfType<SimpleSaveable>(); ;
+                    Assert.NotNull(saveable1);
+
+                    Assert.AreEqual("I am save data 1 in scene B", saveable1.MySavedData);
+                    saveable1.MySavedData = "my save data has changed in scene B!";
+
+                    saveManager.SaveActiveScene();
+
+                    yield return saveManager.LoadCoroutine("Assets/SceneA.unity");
+                    yield return null;
+                }
+
+                {
+                    // Assert save data changes from scene A. but don't save. then load the last saved scene (scene B)
+                    var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+                    Assert.NotNull(saveManager);
+                    var saveable1 = GameObject.FindObjectOfType<SimpleSaveable>(); ;
+                    Assert.NotNull(saveable1);
+
+                    Assert.AreEqual("my save data has changed!", saveable1.MySavedData);
+
+                    yield return saveManager.LoadCoroutine(null);
+                    yield return null;
+                }
+
+                {
+                    // Assert that Scene B has been loaded
+                    var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+                    Assert.NotNull(saveManager);
+                    var saveable1 = GameObject.FindObjectOfType<SimpleSaveable>(); ;
+                    Assert.NotNull(saveable1);
+
+                    Assert.AreEqual("my save data has changed in scene B!", saveable1.MySavedData);
+
+                    saveManager.SaveActiveScene();
+
+                    yield return saveManager.LoadCoroutine("Assets/SceneA.unity");
+                    yield return null;
+                }
+
+                yield return new ExitPlayMode();
+                yield return null;
+
+            }
+            finally
+            {
+                EditorBuildSettings.scenes = oldSceneBuilds;
+
+                Object.DestroyImmediate(prefabRegistry);
+
+                AssetDatabase.DeleteAsset("Assets/SceneA.unity");
+                AssetDatabase.DeleteAsset("Assets/SceneB.unity");
                 WorldSaveManager.DeleteSaveData();
             }
 

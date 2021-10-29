@@ -1,4 +1,5 @@
-﻿using Dman.SceneSaveSystem.Objects.Identifiers;
+﻿using Dman.SceneSaveSystem.Objects;
+using Dman.SceneSaveSystem.Objects.Identifiers;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
@@ -11,6 +12,10 @@ namespace Dman.SceneSaveSystem
         public static string saveFileSuffix = ".dat";
 
 
+        internal static bool Save(SaveScopeData saveScopeData, string saveName)
+        {
+            return Save(saveScopeData.scopeIdentifier, saveName, saveScopeData);
+        }
         internal static bool Save<T>(ISaveScopeIdentifier saveScope, string saveName, T saveData)
         {
             return Save(saveScope.UniqueSemiReadableName + saveFileSuffix, saveName, saveData);

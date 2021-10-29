@@ -12,9 +12,9 @@ namespace Dman.SceneSaveSystem
     public class WorldSaveManager : MonoBehaviour
     {
         public SaveablePrefabRegistry saveablePrefabRegistry;
-        [Tooltip("The scene which will be loaded in on top of the current scene when loading the save file.")]
-        public SceneReference saveLoadScene;
         public string gameobjectSaveRootFileName = "objects.dat";
+
+        private static readonly string LastSavedSceneSaveDataId = "Internal_SaveData_LastSavedScene";
 
         public static void DeleteSaveData()
         {
@@ -55,33 +55,63 @@ namespace Dman.SceneSaveSystem
                 oldGlobalScope.OverwriteWith(globalScope);
             }
 
+            var lastSceneSaved = (sceneScope.scopeIdentifier as SceneSaveScopeIdentifier);
+            var lastSavedSceneSaveData = new SaveData
+            {
+                uniqueSaveDataId = LastSavedSceneSaveDataId,
+                savedSerializableObject = lastSceneSaved
+            };
+            oldGlobalScope.InsertSaveData(lastSavedSceneSaveData);
+
+
             SaveSystemHooks.TriggerPreSave();
-            SerializationManager.Save(sceneScope.scopeIdentifier, SaveContext.instance.saveName, sceneScope);
-            SerializationManager.Save(globalScope.scopeIdentifier, SaveContext.instance.saveName, oldGlobalScope);
+            SerializationManager.Save(sceneScope, SaveContext.instance.saveName);
+            SerializationManager.Save(oldGlobalScope, SaveContext.instance.saveName);
             SaveSystemHooks.TriggerPostSave();
         }
 
         /// <summary>
-        /// Reload the active scene, and wait for the next scene to be loaded. then destroy all objects flagged with SaveablePrefab
-        ///     in the newly loaded scene.
-        /// Then load all ISaveableData into the scene. Then loop through all SaveablePrefabs, and spawn each according to the
-        ///     parent identifyer in the save object. load all saveable data for each prefab into the prefab instance as each
-        ///     is instantiated.
+        /// unload the active scene, and wait for the scene at <paramref name="scenePath"/> to be loaded.
         /// </summary>
-        public void Load(string scenePath = null)
+        public void Load(string scenePath)
         {
             StartCoroutine(LoadCoroutine(scenePath));
         }
-        public void LoadDefaultScene()
+        /// <summary>
+        /// loads the scene last saved in the current save name. Use this when, for example, you are loading a whole game
+        ///     from a menu screen.
+        /// Same as Load(), but with null scene Path. useful for binding to unity events.
+        /// </summary>
+        public void LoadLastSavedScene()
         {
             StartCoroutine(LoadCoroutine(null));
         }
 
+        /// <summary>
+        /// Load the scene at the specified path. if null, then load the scene last saved
+        /// </summary>
+        /// <param name="scenePath"></param>
+        /// <returns></returns>
         public IEnumerator LoadCoroutine(string scenePath = null)
         {
             SaveSystemHooks.TriggerPreLoad();
             DontDestroyOnLoad(gameObject);
-            scenePath = scenePath ?? saveLoadScene.scenePath;
+
+            var globalScope = new GlobalSaveScopeIdentifier();
+            var globalData = SerializationManager.Load<SaveScopeData>(globalScope, SaveContext.instance.saveName);
+
+            if(scenePath == null)
+            {
+                if(globalData.DataInScopeDictionary.TryGetValue(LastSavedSceneSaveDataId, out var saveData) && saveData.savedSerializableObject is SceneSaveScopeIdentifier savedScene)
+                {
+                    scenePath = savedScene.scenePath;
+                }else
+                {
+                    Debug.LogError("Cannot load, invalid save format or no save data.");
+                    throw new SaveFormatException("Bad save format. No last saved scene flag");
+                }
+            }
+
             var sceneIndexToLoad = SceneUtility.GetBuildIndexByScenePath(scenePath);
             Scene loadingScene;
             if(sceneIndexToLoad >= 0)
@@ -95,7 +125,7 @@ namespace Dman.SceneSaveSystem
             yield return new WaitUntil(() => loadingScene.isLoaded);
 
 
-            LoadIntoSingleScene(loadingScene, saveablePrefabRegistry);
+            LoadIntoSingleScene(loadingScene, saveablePrefabRegistry, globalData);
             SaveSystemHooks.TriggerPostLoad();
             yield return null;
             Destroy(gameObject);
@@ -106,13 +136,11 @@ namespace Dman.SceneSaveSystem
         }
 
 
-        public static void LoadIntoSingleScene(Scene scene, SaveablePrefabRegistry saveablePrefabRegistry)
+        private static void LoadIntoSingleScene(Scene scene, SaveablePrefabRegistry saveablePrefabRegistry, SaveScopeData globalData)
         {
             var sceneScopeIdentity = new SceneSaveScopeIdentifier(scene);
-            var globalScope = new GlobalSaveScopeIdentifier();
 
             var sceneData = SerializationManager.Load<SaveScopeData>(sceneScopeIdentity, SaveContext.instance.saveName);
-            var globalData = SerializationManager.Load<SaveScopeData>(globalScope, SaveContext.instance.saveName);
 
             foreach (var go in scene.GetRootGameObjects())
             {
@@ -128,7 +156,7 @@ namespace Dman.SceneSaveSystem
                 if(currentScope != null && !(currentScope.scopeIdentifier is SceneSaveScopeIdentifier))
                 {
                     Debug.LogError("Global save flag detected on a prefab game object instantiated outside of global scope. Either remove the global flag on the prefab, or make sure that it is instantiated under a parent in the global scope", iterationPoint);
-                    throw new System.Exception("Bad save scene format");
+                    throw new SaveFormatException("Bad save scene format");
                 }
                 treeContext.isGlobal = true;
                 LoadRecurse(iterationPoint, globalScope, globalScope, prefabRegistry, treeContext);

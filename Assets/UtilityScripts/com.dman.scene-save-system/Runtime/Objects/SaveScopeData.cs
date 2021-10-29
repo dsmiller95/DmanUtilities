@@ -32,6 +32,12 @@ namespace Dman.SceneSaveSystem.Objects
             scopeIdentifier = identifier;
         }
 
+        public void InsertSaveData(SaveData newSaveData)
+        {
+            dataInScope.RemoveAll(x => x.uniqueSaveDataId == newSaveData.uniqueSaveDataId);
+            dataInScope.Add(newSaveData);
+        }
+
         public void OverwriteWith(SaveScopeData other)
         {
             if (!other.scopeIdentifier.Equals(scopeIdentifier))
