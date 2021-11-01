@@ -179,6 +179,17 @@ namespace Dman.SceneSaveSystem
                 var prefabParent = iterationPoint.GetComponent<SaveablePrefabParent>();
                 if (prefabParent != null)
                 {
+                    var childScopesForPrefab = currentScope.childScopes
+                        .Where(x => 
+                            (x.scopeIdentifier is PrefabSaveScopeIdentifier prefabIdentifier) &&
+                            prefabIdentifier.prefabParentId == prefabParent.prefabParentName
+                        ).ToList();
+                    if(childScopesForPrefab.Count <= 0)
+                    {
+                        // this prefab parent was not saved. do nothing, and allow any default children
+                        //  in the scene to stick around
+                        return;
+                    }
                     foreach (Transform transform in prefabParent.gameObject.transform)
                     {
                         if (transform.GetComponent<SaveablePrefab>())
@@ -186,11 +197,10 @@ namespace Dman.SceneSaveSystem
                             GameObject.Destroy(transform.gameObject);
                         }
                     }
-                    foreach (var childScopeData in currentScope.childScopes)
+                    foreach (var childScopeData in childScopesForPrefab)
                     {
-                        if (!(childScopeData.scopeIdentifier is PrefabSaveScopeIdentifier prefabIdentifier) ||
-                            prefabIdentifier.prefabParentId != prefabParent.prefabParentName ||
-                            prefabIdentifier.IsMarkerPrefab)
+                        var prefabIdentifier = childScopeData.scopeIdentifier as PrefabSaveScopeIdentifier;
+                        if (prefabIdentifier.IsMarkerPrefab)
                         {
                             continue;
                         }

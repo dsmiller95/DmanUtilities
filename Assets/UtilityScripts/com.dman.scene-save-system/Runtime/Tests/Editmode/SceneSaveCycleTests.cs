@@ -558,6 +558,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                 {
                     // setup scene A
                     var testSceneA = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                    var saveablePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/topLevel_prefab.prefab");
 
                     var prefabParentObject = new GameObject("prefab parent");
                     prefabParentObject.AddComponent<GlobalSaveFlag>();
@@ -566,6 +567,9 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                     var prefabParentObjectTwo = new GameObject("prefab parent two");
                     prefabParentObjectTwo.AddComponent<GlobalSaveFlag>();
                     prefabParentObjectTwo.AddComponent<SaveablePrefabParent>().prefabParentName = "another parent to prefabs";
+
+                    var nextPrefab = GameObject.Instantiate(saveablePrefab, prefabParentObjectTwo.transform);
+                    nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "third prefab! in another!";
 
                     var saveManagerObject = new GameObject("save manager");
                     var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
@@ -599,13 +603,31 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                     new EditorBuildSettingsScene("Assets/SceneB.unity", true)
                 };
 
-                var activeScene = EditorSceneManager.OpenScene("Assets/SceneA.unity", OpenSceneMode.Single);
+                var activeScene = EditorSceneManager.OpenScene("Assets/SceneB.unity", OpenSceneMode.Single);
 
                 yield return new EnterPlayMode();
 
+                SaveContext.instance.saveName = "test_save";
+                WorldSaveManager.DeleteSaveData();
+
+
                 {
-                    SaveContext.instance.saveName = "test_save";
-                    WorldSaveManager.DeleteSaveData();
+                    // save scene B, load scene A
+                    //  done to ensure that global save data flags, when not present, will behave as if loading fresh
+                    var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+
+                    var prefabParent = GameObject.FindObjectOfType<SaveablePrefabParent>();
+
+                    Assert.AreEqual(0, prefabParent.transform.childCount);
+
+                    saveManager.SaveActiveScene();
+
+                    yield return saveManager.LoadCoroutine("Assets/SceneA.unity");
+                    yield return null;
+                }
+
+                {
+                    // Assert scene A state, add some prefabs, and save
 
                     var saveablePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/topLevel_prefab.prefab");
                     var prefabParent = GameObject.FindObjectsOfType<SaveablePrefabParent>().Where(x => x.prefabParentName == "a parent to prefabs").FirstOrDefault();
@@ -616,8 +638,11 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                     nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "second prefab instance";
 
                     var prefabParentTwo = GameObject.FindObjectsOfType<SaveablePrefabParent>().Where(x => x.prefabParentName == "another parent to prefabs").FirstOrDefault();
+                    Assert.AreEqual(1, prefabParentTwo.transform.childCount);
+                    Assert.AreEqual("third prefab! in another!", prefabParentTwo.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+
                     nextPrefab = GameObject.Instantiate(saveablePrefab, prefabParentTwo.transform);
-                    nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "third prefab! in another!";
+                    nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "fourth prefab! in another!";
 
                     var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
 
@@ -653,8 +678,9 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                 {
                     // Assert save data changes from global and scene A
                     var prefabParentTwo = GameObject.FindObjectsOfType<SaveablePrefabParent>().Where(x => x.prefabParentName == "another parent to prefabs").FirstOrDefault();
-                    Assert.AreEqual(1, prefabParentTwo.transform.childCount);
+                    Assert.AreEqual(2, prefabParentTwo.transform.childCount);
                     Assert.AreEqual("third prefab! in another!", prefabParentTwo.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                    Assert.AreEqual("fourth prefab! in another!", prefabParentTwo.transform.GetChild(1).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
 
                     var prefabParent = GameObject.FindObjectsOfType<SaveablePrefabParent>().Where(x => x.prefabParentName == "a parent to prefabs").FirstOrDefault();
                     Assert.AreEqual(0, prefabParent.transform.childCount);

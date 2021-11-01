@@ -58,9 +58,6 @@ namespace Dman.SceneSaveSystem.Objects
                 throw new System.NotImplementedException("Nested scopes of a type other than a prefab scope are not supported");
             }
 
-
-            //this.childScopes = other.childScopes;
-
             var otherPrefabParentNames = other.childScopes
                 .Select(x => x.scopeIdentifier)
                 .OfType<PrefabSaveScopeIdentifier>()
