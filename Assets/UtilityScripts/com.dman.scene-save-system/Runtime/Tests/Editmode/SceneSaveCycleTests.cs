@@ -395,6 +395,12 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                     saveable2.MySavedData = "I am save data two. but Scene B!";
                     saveable2.uniqueNameInScope = "unique";
 
+                    var savedObject3 = new GameObject("save object four");
+                    savedObject3.AddComponent<GlobalSaveFlag>();
+                    var saveable3 = savedObject3.AddComponent<SimpleSaveable>();
+                    saveable3.MySavedData = "I am save data four!";
+                    saveable3.uniqueNameInScope = "uniqueThree";
+
                     var saveManagerObject = new GameObject("save manager");
                     var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
 
@@ -457,10 +463,14 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                     Assert.NotNull(saveable1);
                     var saveable2 = saveables.Where(x => x.gameObject.name == "save object two").FirstOrDefault();
                     Assert.NotNull(saveable2);
+                    var saveable3 = saveables.Where(x => x.gameObject.name == "save object four").FirstOrDefault();
+                    Assert.NotNull(saveable3);
 
                     Assert.AreEqual("I am save data 1 in scene B", saveable1.MySavedData);
                     Assert.AreEqual("my global save data is different!", saveable2.MySavedData);
                     saveable2.MySavedData = "my global save data is different... again";
+                    Assert.AreEqual("I am save data four!", saveable3.MySavedData);
+                    saveable3.MySavedData = "my global save data four is different, but only in scene B";
 
                     saveManager.SaveActiveScene();
 
@@ -484,6 +494,27 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                     Assert.AreEqual("my save data has changed!", saveable1.MySavedData);
                     Assert.AreEqual("my global save data is different... again", saveable2.MySavedData);
                     Assert.AreEqual("my special global data is different!", saveable3.MySavedData);
+
+                    yield return saveManager.LoadCoroutine("Assets/SceneB.unity");
+                    yield return null;
+                }
+
+                {
+                    // Assert save data changes from global and scene B
+                    var saveables = GameObject.FindObjectsOfType<SimpleSaveable>();
+
+                    var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+                    Assert.NotNull(saveManager);
+                    var saveable1 = saveables.Where(x => x.gameObject.name == "save object 1").FirstOrDefault();
+                    Assert.NotNull(saveable1);
+                    var saveable2 = saveables.Where(x => x.gameObject.name == "save object two").FirstOrDefault();
+                    Assert.NotNull(saveable2);
+                    var saveable3 = saveables.Where(x => x.gameObject.name == "save object four").FirstOrDefault();
+                    Assert.NotNull(saveable2);
+
+                    Assert.AreEqual("I am save data 1 in scene B", saveable1.MySavedData);
+                    Assert.AreEqual("my global save data is different... again", saveable2.MySavedData);
+                    Assert.AreEqual("my global save data four is different, but only in scene B", saveable3.MySavedData);
 
                     yield return null;
                 }

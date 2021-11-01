@@ -44,14 +44,14 @@ namespace Dman.SceneSaveSystem.Objects
             {
                 throw new System.Exception("Cannot overwrite. Scope identifiers do not match");
             }
-            for (int i = 0; i < dataInScope.Count; i++)
+            for (int i = 0; i < other.dataInScope.Count; i++)
             {
-                var current = dataInScope[i];
-                if (other.DataInScopeDictionary.TryGetValue(current.uniqueSaveDataId, out var replacementData))
-                {
-                    dataInScope[i] = replacementData;
-                }
+                var otherItem = other.dataInScope[i];
+                DataInScopeDictionary[otherItem.uniqueSaveDataId] = otherItem;
             }
+            this.dataInScope = DataInScopeDictionary.Select(x => x.Value).ToList();
+            _savedDict = null; // un-cache the dictionary since modifications were made to the data dictionary
+
             // assuming all child scopes are prefab scopes. in practice, this is how the tree gets set up currently
             if (!childScopes.All(x => x.scopeIdentifier is PrefabSaveScopeIdentifier) || !other.childScopes.All(x => x.scopeIdentifier is PrefabSaveScopeIdentifier))
             {
