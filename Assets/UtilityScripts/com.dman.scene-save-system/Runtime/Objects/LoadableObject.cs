@@ -8,33 +8,31 @@ namespace Dman.SceneSaveSystem.Objects
     internal interface ILoadableObject
     {
         public int LoadOrder { get; }
-        public void LoadDataIn(SaveablePrefabRegistry prefabRegistry);
+        public void LoadDataIn();
     }
 
     internal class BasicLoadableObject: ILoadableObject
     {
         ISaveableData saveDataTarget;
-        SaveTreeContext currentContext;
-        SaveScopeData currentScope;
+        LoadIterationContext currentContext;
 
-        public BasicLoadableObject(ISaveableData saveableData, SaveTreeContext currentContext, SaveScopeData currentScope)
+        public BasicLoadableObject(ISaveableData saveableData, LoadIterationContext currentContext)
         {
             this.saveDataTarget = saveableData;
             this.currentContext = currentContext;
-            this.currentScope = currentScope;
         }
 
         public int LoadOrder => saveDataTarget.LoadOrderPriority;
 
-        public void LoadDataIn(SaveablePrefabRegistry prefabRegistry)
+        public void LoadDataIn()
         {
             // current scope can be null if loading a scene which has not been saved before, and
             //  this object is not in the global scope
-            if (currentScope == null)
+            if (currentContext.currentScope == null)
             {
                 return;
             }
-            if (currentScope.DataInScopeDictionary.TryGetValue(saveDataTarget.UniqueSaveIdentifier, out var saveData))
+            if (currentContext.currentScope.DataInScopeDictionary.TryGetValue(saveDataTarget.UniqueSaveIdentifier, out var saveData))
             {
                 saveDataTarget.SetupFromSaveObject(saveData.savedSerializableObject);
             }
@@ -44,29 +42,25 @@ namespace Dman.SceneSaveSystem.Objects
     internal class PrefabParentLoadable : ILoadableObject
     {
         SaveablePrefabParent prefabParent;
-        SaveTreeContext currentContext;
-        SaveScopeData currentScope;
-        SaveScopeData globalScope;
+        LoadIterationContext currentContext;
 
-        public PrefabParentLoadable(SaveablePrefabParent prefabParent, SaveTreeContext currentContext, SaveScopeData currentScope, SaveScopeData globalScope)
+        public PrefabParentLoadable(SaveablePrefabParent prefabParent, LoadIterationContext currentContext)
         {
             this.prefabParent = prefabParent;
             this.currentContext = currentContext;
-            this.currentScope = currentScope;
-            this.globalScope = globalScope;
         }
 
         public int LoadOrder => 1000;
 
-        public void LoadDataIn(SaveablePrefabRegistry prefabRegistry)
+        public void LoadDataIn()
         {
             // current scope can be null if loading a scene which has not been saved before, and
             //  this object is not in the global scope
-            if(currentScope == null)
+            if(currentContext.currentScope == null)
             {
                 return;
             }
-            var childScopesForPrefab = currentScope.childScopes
+            var childScopesForPrefab = currentContext.currentScope.childScopes
                 .Where(x =>
                     (x.scopeIdentifier is PrefabSaveScopeIdentifier prefabIdentifier) &&
                     prefabIdentifier.prefabParentId == prefabParent.prefabParentName
@@ -91,7 +85,7 @@ namespace Dman.SceneSaveSystem.Objects
                 {
                     continue;
                 }
-                var prefab = prefabRegistry.GetUniqueObjectFromID(prefabIdentifier.prefabTypeId);
+                var prefab = currentContext.prefabRegistry.GetUniqueObjectFromID(prefabIdentifier.prefabTypeId);
                 if (prefab == null)
                 {
                     Debug.LogError($"No prefab found for prefab ID {prefabIdentifier.prefabTypeId}, did the prefab configuration change since the last save?", prefabParent);
@@ -100,10 +94,7 @@ namespace Dman.SceneSaveSystem.Objects
                 var newInstance = GameObject.Instantiate(prefab.prefab, prefabParent.transform);
                 WorldSaveManager.LoadDataInsideScope(
                     newInstance.transform,
-                    currentContext,
-                    childScopeData,
-                    globalScope,
-                    prefabRegistry);
+                    currentContext.ForChildScope(childScopeData));
             }
         }
     }

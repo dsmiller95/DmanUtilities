@@ -145,127 +145,53 @@ namespace Dman.SceneSaveSystem
             var sceneData = SerializationManager.Load<SaveScopeData>(sceneScopeIdentity, SaveContext.instance.saveName);
 
 
-            var iterationContext = new SaveTreeContext();
+            var iterationContext = new LoadIterationContext
+            {
+                isGlobal = false,
+                currentScope = sceneData,
+                globalScope = globalData,
+                prefabRegistry = saveablePrefabRegistry
+            };
             var allLoadablesAtScene = scene.GetRootGameObjects()
-                .SelectMany(x => ExtractLoadableObjectsFromScope(x.transform, iterationContext, sceneData, globalData))
+                .SelectMany(x => ExtractLoadableObjectsFromScope(x.transform, iterationContext))
                 .OrderBy(x => x.LoadOrder)
                 .ToList();
 
             foreach (var loadable in allLoadablesAtScene)
             {
-                loadable.LoadDataIn(saveablePrefabRegistry);
-            }
-        }
-
-        private static void LoadRecurse(GameObject iterationPoint, SaveScopeData currentScope, SaveScopeData globalScope, SaveablePrefabRegistry prefabRegistry, SaveTreeContext treeContext)
-        {
-            if (iterationPoint.GetComponent<GlobalSaveFlag>() != null && !treeContext.isGlobal)
-            {
-                if (currentScope != null && !(currentScope.scopeIdentifier is SceneSaveScopeIdentifier))
-                {
-                    Debug.LogError("Global save flag detected on a prefab game object instantiated outside of global scope. Either remove the global flag on the prefab, or make sure that it is instantiated under a parent in the global scope", iterationPoint);
-                    throw new SaveFormatException("Bad save scene format");
-                }
-                treeContext.isGlobal = true;
-                LoadRecurse(iterationPoint, globalScope, globalScope, prefabRegistry, treeContext);
-                return;
-            }
-
-            if (currentScope != null) // don't try to load any data if there is no current scope. wait until global scope is encountered
-            {
-                var saveables = iterationPoint.GetComponents<ISaveableData>();
-                foreach (var saveable in saveables)
-                {
-                    if (currentScope.DataInScopeDictionary.TryGetValue(saveable.UniqueSaveIdentifier, out var saveData))
-                    {
-                        saveable.SetupFromSaveObject(saveData.savedSerializableObject);
-                    }
-                }
-
-                var prefabParent = iterationPoint.GetComponent<SaveablePrefabParent>();
-                if (prefabParent != null)
-                {
-                    var childScopesForPrefab = currentScope.childScopes
-                        .Where(x =>
-                            (x.scopeIdentifier is PrefabSaveScopeIdentifier prefabIdentifier) &&
-                            prefabIdentifier.prefabParentId == prefabParent.prefabParentName
-                        ).ToList();
-                    if (childScopesForPrefab.Count <= 0)
-                    {
-                        // this prefab parent was not saved. do nothing, and allow any default children
-                        //  in the scene to stick around
-                        return;
-                    }
-                    foreach (Transform transform in prefabParent.gameObject.transform)
-                    {
-                        if (transform.GetComponent<SaveablePrefab>())
-                        {
-                            GameObject.Destroy(transform.gameObject);
-                        }
-                    }
-                    foreach (var childScopeData in childScopesForPrefab)
-                    {
-                        var prefabIdentifier = childScopeData.scopeIdentifier as PrefabSaveScopeIdentifier;
-                        if (prefabIdentifier.IsMarkerPrefab)
-                        {
-                            continue;
-                        }
-                        var prefab = prefabRegistry.GetUniqueObjectFromID(prefabIdentifier.prefabTypeId);
-                        if (prefab == null)
-                        {
-                            Debug.LogError($"No prefab found for prefab ID {prefabIdentifier.prefabTypeId}, did the prefab configuration change since the last save?", iterationPoint);
-                            throw new System.Exception("Bad prefab fomat");
-                        }
-                        var newInstance = Instantiate(prefab.prefab, prefabParent.transform);
-                        LoadRecurse(newInstance.gameObject, childScopeData, globalScope, prefabRegistry, treeContext);
-                    }
-                    return;
-                }
-            }
-
-
-            foreach (Transform childTransform in iterationPoint.transform)
-            {
-                LoadRecurse(childTransform.gameObject, currentScope, globalScope, prefabRegistry, treeContext);
+                loadable.LoadDataIn();
             }
         }
 
         internal static void LoadDataInsideScope(
-            Transform initialTransform, 
-            SaveTreeContext currentContext, 
-            SaveScopeData currentScope, 
-            SaveScopeData globalScope, 
-            SaveablePrefabRegistry prefabRegistry)
+            Transform initialTransform,
+            LoadIterationContext currentContext)
         {
-            var allLoadables = ExtractLoadableObjectsFromScope(initialTransform, currentContext, currentScope, globalScope)
+            var allLoadables = ExtractLoadableObjectsFromScope(initialTransform, currentContext)
                 .OrderBy(x => x.LoadOrder)
                 .ToList();
 
             foreach (var loadable in allLoadables)
             {
-                loadable.LoadDataIn(prefabRegistry);
+                loadable.LoadDataIn();
             }
         }
 
         struct LoadTraversalState
         {
             public Transform transform;
-            public SaveTreeContext context;
-            public SaveScopeData currentScope;
+            public LoadIterationContext context;
         }
 
         private static IEnumerable<ILoadableObject> ExtractLoadableObjectsFromScope(
             Transform initialTransform,
-            SaveTreeContext initialContext,
-            SaveScopeData initialScope, 
-            SaveScopeData globalScope)
+            LoadIterationContext currentContext)
         {
             var transformIterationStack = new Stack<LoadTraversalState>();
             transformIterationStack.Push(new LoadTraversalState
             {
                 transform = initialTransform,
-                context = initialContext,
-                currentScope = initialScope,
+                context = currentContext,
             });
 
             while (transformIterationStack.Count > 0)
@@ -274,14 +200,14 @@ namespace Dman.SceneSaveSystem
 
                 if (iteration.transform.GetComponent<GlobalSaveFlag>() != null && !iteration.context.isGlobal)
                 {
-                    if (iteration.currentScope != null && !(iteration.currentScope.scopeIdentifier is SceneSaveScopeIdentifier))
+                    if (iteration.context.currentScope != null && !(iteration.context.currentScope.scopeIdentifier is SceneSaveScopeIdentifier))
                     {
                         Debug.LogError("Global save flag detected on a prefab game object instantiated outside of global scope. Either remove the global flag on the prefab, or make sure that it is instantiated under a parent in the global scope", iteration.transform.gameObject);
                         throw new SaveFormatException("Bad save scene format");
                     }
 
                     iteration.context.isGlobal = true;
-                    iteration.currentScope = globalScope;
+                    iteration.context.currentScope = iteration.context.globalScope;
                 }
 
                 var saveables = iteration.transform.GetComponents<ISaveableData>();
@@ -289,14 +215,14 @@ namespace Dman.SceneSaveSystem
                 {
                     foreach (var saveable in saveables)
                     {
-                        yield return new BasicLoadableObject(saveable, iteration.context, iteration.currentScope);
+                        yield return new BasicLoadableObject(saveable, iteration.context);
                     }
                 }
 
                 var prefabParent = iteration.transform.GetComponent<SaveablePrefabParent>();
                 if (prefabParent != null)
                 {
-                    yield return new PrefabParentLoadable(prefabParent, iteration.context, iteration.currentScope, globalScope);
+                    yield return new PrefabParentLoadable(prefabParent, iteration.context);
                     continue;
                 }
 
@@ -305,8 +231,7 @@ namespace Dman.SceneSaveSystem
                     transformIterationStack.Push(new LoadTraversalState
                     {
                         transform = child,
-                        context = iteration.context,
-                        currentScope = iteration.currentScope
+                        context = iteration.context
                     });
                 }
             }
