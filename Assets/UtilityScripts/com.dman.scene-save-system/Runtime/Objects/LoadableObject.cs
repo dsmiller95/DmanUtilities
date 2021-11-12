@@ -92,9 +92,18 @@ namespace Dman.SceneSaveSystem.Objects
                     throw new System.Exception("Bad prefab fomat");
                 }
                 var newInstance = GameObject.Instantiate(prefab.prefab, prefabParent.transform);
-                WorldSaveManager.LoadDataInsideScope(
-                    newInstance.transform,
-                    currentContext.ForChildScope(childScopeData));
+
+
+                var allLoadables = WorldSaveManager.ExtractLoadableObjectsFromScope(
+                        newInstance.transform,
+                        currentContext.ForChildScope(childScopeData))
+                    .OrderBy(x => x.LoadOrder)
+                    .ToList();
+
+                foreach (var loadable in allLoadables)
+                {
+                    loadable.LoadDataIn();
+                }
             }
         }
     }

@@ -137,13 +137,11 @@ namespace Dman.SceneSaveSystem
             return System.IO.Path.GetFileNameWithoutExtension(path);
         }
 
-
         private static void LoadIntoSingleScene(Scene scene, SaveablePrefabRegistry saveablePrefabRegistry, SaveScopeData globalData)
         {
             var sceneScopeIdentity = new SceneSaveScopeIdentifier(scene);
 
             var sceneData = SerializationManager.Load<SaveScopeData>(sceneScopeIdentity, SaveContext.instance.saveName);
-
 
             var iterationContext = new LoadIterationContext
             {
@@ -163,27 +161,13 @@ namespace Dman.SceneSaveSystem
             }
         }
 
-        internal static void LoadDataInsideScope(
-            Transform initialTransform,
-            LoadIterationContext currentContext)
-        {
-            var allLoadables = ExtractLoadableObjectsFromScope(initialTransform, currentContext)
-                .OrderBy(x => x.LoadOrder)
-                .ToList();
-
-            foreach (var loadable in allLoadables)
-            {
-                loadable.LoadDataIn();
-            }
-        }
-
         struct LoadTraversalState
         {
             public Transform transform;
             public LoadIterationContext context;
         }
 
-        private static IEnumerable<ILoadableObject> ExtractLoadableObjectsFromScope(
+        internal static IEnumerable<ILoadableObject> ExtractLoadableObjectsFromScope(
             Transform initialTransform,
             LoadIterationContext currentContext)
         {
