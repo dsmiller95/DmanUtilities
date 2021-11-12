@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
@@ -14,6 +15,11 @@ namespace Dman.SceneSaveSystem.PlaymodeTests
 
         public string UniqueSaveIdentifier => "SimpleSaveableData" + uniqueNameInScope;
 
+        public int loadOrder = 0;
+        public int LoadOrderPriority { get => loadOrder; set => loadOrder = value; }
+
+        public static event Action<SimpleSaveable> OnLoad;
+
         public ISaveableData[] GetDependencies()
         {
             return new ISaveableData[0];
@@ -29,6 +35,7 @@ namespace Dman.SceneSaveSystem.PlaymodeTests
             if(save is string saved)
             {
                 MySavedData = saved;
+                OnLoad?.Invoke(this);
             }
         }
     }

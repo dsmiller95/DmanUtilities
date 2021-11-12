@@ -36,6 +36,7 @@ namespace Dman.SceneSaveSystem
             }
 
             string path = SerializationManager.GetSavePath(saveFile, saveName);
+            Debug.Log("Saving file: " + path);
 
             FileStream file = File.Create(path);
             try
@@ -78,7 +79,10 @@ namespace Dman.SceneSaveSystem
             {
                 var savePath = GetSavePath(file, saveName);
                 if (File.Exists(savePath))
+                {
+                    Debug.Log("deleting save file: " + savePath);
                     File.Delete(savePath);
+                }
             }
         }
 
@@ -94,6 +98,8 @@ namespace Dman.SceneSaveSystem
             {
                 return null;
             }
+
+            Debug.Log("Loading file: " + path);
 
             var formatter = SerializationManager.GetBinaryFormatter();
             FileStream file = File.Open(path, FileMode.Open);

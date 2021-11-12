@@ -1,6 +1,7 @@
 ﻿using Dman.SceneSaveSystem.Objects.Identifiers;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Dman.SceneSaveSystem.Objects
 {
@@ -19,7 +20,16 @@ namespace Dman.SceneSaveSystem.Objects
             {
                 if (_savedDict == null)
                 {
-                    _savedDict = dataInScope.ToDictionary(x => x.uniqueSaveDataId);
+                    _savedDict = new Dictionary<string, SaveData>();
+                    foreach (var saveData in dataInScope)
+                    {
+                        if (_savedDict.ContainsKey(saveData.uniqueSaveDataId))
+                        {
+                            Debug.LogError($"More than one save data in scope with unique ID {saveData.uniqueSaveDataId}");
+                            throw new SaveFormatException($"More than one save data in scope with unique ID {saveData.uniqueSaveDataId}");
+                        }
+                        _savedDict[saveData.uniqueSaveDataId] = saveData;
+                    }
                 }
                 return _savedDict;
             }

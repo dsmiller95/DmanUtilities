@@ -32,6 +32,8 @@ namespace Dman.SceneSaveSystem.SharedSaveables
 
         public string UniqueSaveIdentifier => "transform data: " + uniqueNameInsideContext;
 
+        public int LoadOrderPriority => 0;
+
         public object GetSaveObject()
         {
             return new TransformSaveObject(transform);

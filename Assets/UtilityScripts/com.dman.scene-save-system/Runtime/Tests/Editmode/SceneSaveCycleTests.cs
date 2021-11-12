@@ -1,6 +1,7 @@
 using Dman.SceneSaveSystem.PlaymodeTests;
 using NUnit.Framework;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -219,101 +220,106 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
             try
             {
-                var topLevelPrefab = CreateSavablePrefab("topLevel", go =>
                 {
-                    var nestedObject = new GameObject("prefab parent in prefab");
-                    nestedObject.transform.parent = go.transform;
-                    var prefabParent = nestedObject.AddComponent<SaveablePrefabParent>();
-                    prefabParent.prefabParentName = "NestedPrefabParent";
-                });
-                var nestedPrefab = CreateSavablePrefab("nested");
+                    var topLevelPrefab = CreateSavablePrefab("topLevel", go =>
+                    {
+                        var nestedObject = new GameObject("prefab parent in prefab");
+                        nestedObject.transform.parent = go.transform;
+                        var prefabParent = nestedObject.AddComponent<SaveablePrefabParent>();
+                        prefabParent.prefabParentName = "NestedPrefabParent";
+                    });
+                    var nestedPrefab = CreateSavablePrefab("nested");
 
-                prefabRegistry.allObjects = new SaveablePrefabType[] {
-                    topLevelPrefab.GetComponent<SaveablePrefab>().myPrefabType,
-                    nestedPrefab.GetComponent<SaveablePrefab>().myPrefabType
-                };
-                prefabRegistry.AssignAllIDs();
+                    prefabRegistry.allObjects = new SaveablePrefabType[] {
+                        topLevelPrefab.GetComponent<SaveablePrefab>().myPrefabType,
+                        nestedPrefab.GetComponent<SaveablePrefab>().myPrefabType
+                    };
+                    prefabRegistry.AssignAllIDs();
 
-                var prefabParentObject = new GameObject("prefab parent in scene");
-                prefabParentObject.AddComponent<SaveablePrefabParent>().prefabParentName = "ScenePrefabParent";
+                    var prefabParentObject = new GameObject("prefab parent in scene");
+                    prefabParentObject.AddComponent<SaveablePrefabParent>().prefabParentName = "ScenePrefabParent";
 
-                var saveManagerObject = new GameObject("save manager");
-                var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
+                    var saveManagerObject = new GameObject("save manager");
+                    var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
 
-                saveManager.saveablePrefabRegistry = prefabRegistry;
+                    saveManager.saveablePrefabRegistry = prefabRegistry;
+                }
 
 
                 yield return new EnterPlayMode();
                 SaveContext.instance.saveName = "test_save";
                 WorldSaveManager.DeleteSaveData();
-
-                topLevelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/topLevel_prefab.prefab");
-                nestedPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/nested_prefab.prefab");
-                var prefabParentInScene = GameObject.FindObjectOfType<SaveablePrefabParent>();
-
                 {
-                    var nextPrefab = GameObject.Instantiate(topLevelPrefab, prefabParentInScene.transform);
-                    nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "first!";
+                    var topLevelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/topLevel_prefab.prefab");
+                    var nestedPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/nested_prefab.prefab");
+                    var prefabParentInScene = GameObject.FindObjectOfType<SaveablePrefabParent>();
 
-                    AddNestedPrefab(nestedPrefab, nextPrefab, "first nested!");
-                    AddNestedPrefab(nestedPrefab, nextPrefab, "second nested!");
-                    AddNestedPrefab(nestedPrefab, nextPrefab, "third nested!");
+                    {
+                        var nextPrefab = GameObject.Instantiate(topLevelPrefab, prefabParentInScene.transform);
+                        nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "first!";
+
+                        AddNestedPrefab(nestedPrefab, nextPrefab, "first nested!");
+                        AddNestedPrefab(nestedPrefab, nextPrefab, "second nested!");
+                        AddNestedPrefab(nestedPrefab, nextPrefab, "third nested!");
+                    }
+
+                    {
+                        var nextPrefab = GameObject.Instantiate(topLevelPrefab, prefabParentInScene.transform);
+                        nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "second prefab instance";
+                    }
+
+                    {
+                        var nextPrefab = GameObject.Instantiate(topLevelPrefab, prefabParentInScene.transform);
+                        nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "third prefab instance";
+
+                        AddNestedPrefab(nestedPrefab, nextPrefab, "first third nested!");
+                        AddNestedPrefab(nestedPrefab, nextPrefab, "second third nested!");
+                    }
+
+                    var saveables = GameObject.FindObjectsOfType<SimpleSaveable>();
+
+                    var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+                    Assert.NotNull(saveManager);
+
+                    saveManager.SaveActiveScene();
+
+                    yield return saveManager.LoadCoroutine("");
+                    yield return null;
                 }
 
                 {
-                    var nextPrefab = GameObject.Instantiate(topLevelPrefab, prefabParentInScene.transform);
-                    nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "second prefab instance";
-                }
+                    var saveables = GameObject.FindObjectsOfType<SimpleSaveable>();
 
-                {
-                    var nextPrefab = GameObject.Instantiate(topLevelPrefab, prefabParentInScene.transform);
-                    nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>().MySavedData = "third prefab instance";
+                    var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+                    Assert.NotNull(saveManager);
 
-                    AddNestedPrefab(nestedPrefab, nextPrefab, "first third nested!");
-                    AddNestedPrefab(nestedPrefab, nextPrefab, "second third nested!");
-                }
+                    var prefabParentInScene = GameObject.FindObjectsOfType<SaveablePrefabParent>().Where(x => x.prefabParentName == "ScenePrefabParent").First();
+                    Assert.NotNull(prefabParentInScene);
+                    Assert.AreEqual(3, prefabParentInScene.transform.childCount);
 
-                var saveables = GameObject.FindObjectsOfType<SimpleSaveable>();
-
-                saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
-                Assert.NotNull(saveManager);
-
-                saveManager.SaveActiveScene();
-
-                yield return saveManager.LoadCoroutine("");
-                yield return null;
-
-                saveables = GameObject.FindObjectsOfType<SimpleSaveable>();
-
-                saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
-                Assert.NotNull(saveManager);
-
-                prefabParentInScene = GameObject.FindObjectsOfType<SaveablePrefabParent>().Where(x => x.prefabParentName == "ScenePrefabParent").First();
-                Assert.NotNull(prefabParentInScene);
-                Assert.AreEqual(3, prefabParentInScene.transform.childCount);
-
-                {
-                    var prefabInstance = prefabParentInScene.transform.GetChild(0);
-                    Assert.AreEqual("first!", prefabInstance.GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
-                    var prefabParentInPrefab = prefabInstance.GetComponentInChildren<SaveablePrefabParent>();
-                    Assert.AreEqual(3, prefabParentInPrefab.transform.childCount);
-                    Assert.AreEqual("first nested!", prefabParentInPrefab.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
-                    Assert.AreEqual("second nested!", prefabParentInPrefab.transform.GetChild(1).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
-                    Assert.AreEqual("third nested!", prefabParentInPrefab.transform.GetChild(2).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
-                }
-                {
-                    var prefabInstance = prefabParentInScene.transform.GetChild(1);
-                    Assert.AreEqual("second prefab instance", prefabInstance.GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
-                    var prefabParentInPrefab = prefabInstance.GetComponentInChildren<SaveablePrefabParent>();
-                    Assert.AreEqual(0, prefabParentInPrefab.transform.childCount);
-                }
-                {
-                    var prefabInstance = prefabParentInScene.transform.GetChild(2);
-                    Assert.AreEqual("third prefab instance", prefabInstance.GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
-                    var prefabParentInPrefab = prefabInstance.GetComponentInChildren<SaveablePrefabParent>();
-                    Assert.AreEqual(2, prefabParentInPrefab.transform.childCount);
-                    Assert.AreEqual("first third nested!", prefabParentInPrefab.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
-                    Assert.AreEqual("second third nested!", prefabParentInPrefab.transform.GetChild(1).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                    {
+                        var prefabInstance = prefabParentInScene.transform.GetChild(0);
+                        Assert.AreEqual("first!", prefabInstance.GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                        var prefabParentInPrefab = prefabInstance.GetComponentInChildren<SaveablePrefabParent>();
+                        Assert.AreEqual(3, prefabParentInPrefab.transform.childCount);
+                        Assert.AreEqual("first nested!", prefabParentInPrefab.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                        Assert.AreEqual("second nested!", prefabParentInPrefab.transform.GetChild(1).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                        Assert.AreEqual("third nested!", prefabParentInPrefab.transform.GetChild(2).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                    }
+                    {
+                        var prefabInstance = prefabParentInScene.transform.GetChild(1);
+                        Assert.AreEqual("second prefab instance", prefabInstance.GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                        var prefabParentInPrefab = prefabInstance.GetComponentInChildren<SaveablePrefabParent>();
+                        Assert.AreEqual(0, prefabParentInPrefab.transform.childCount);
+                    }
+                    {
+                        var prefabInstance = prefabParentInScene.transform.GetChild(2);
+                        Assert.AreEqual("third prefab instance", prefabInstance.GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                        var prefabParentInPrefab = prefabInstance.GetComponentInChildren<SaveablePrefabParent>();
+                        Assert.AreEqual(2, prefabParentInPrefab.transform.childCount);
+                        Assert.AreEqual("first third nested!", prefabParentInPrefab.transform.GetChild(0).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                        Assert.AreEqual("second third nested!", prefabParentInPrefab.transform.GetChild(1).GetChild(0).GetComponent<SimpleSaveable>().MySavedData);
+                    }
                 }
 
                 yield return new ExitPlayMode();
@@ -769,7 +775,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                     // modify and save scene A
                     var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
                     Assert.NotNull(saveManager);
-                    var saveable1 = GameObject.FindObjectOfType<SimpleSaveable>();;
+                    var saveable1 = GameObject.FindObjectOfType<SimpleSaveable>(); ;
                     Assert.NotNull(saveable1);
 
                     Assert.AreEqual("I am save data 1 in scene A", saveable1.MySavedData);
@@ -847,5 +853,156 @@ namespace Dman.SceneSaveSystem.EditmodeTests
             yield return null;
         }
 
+
+        [UnityTest]
+        public IEnumerator CyclesWithSavedPrefabsInSpecifiedLoadOrder()
+        {
+            var testScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            var testSceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(testScene.path);
+            try
+            {
+
+                {
+                    var topLevelSavedObject = new GameObject("save object 1");
+                    var saveable = topLevelSavedObject.AddComponent<SimpleSaveable>();
+                    saveable.MySavedData = "I am save data 1 with default load order";
+                    saveable.LoadOrderPriority = 0;
+                    saveable.uniqueNameInScope = "one";
+
+                    topLevelSavedObject = new GameObject("save object 2");
+                    saveable = topLevelSavedObject.AddComponent<SimpleSaveable>();
+                    saveable.MySavedData = "I am save data 2 with post-prefab load order";
+                    saveable.LoadOrderPriority = 1001;
+                    saveable.uniqueNameInScope = "two";
+
+                    topLevelSavedObject = new GameObject("save object 3");
+                    saveable = topLevelSavedObject.AddComponent<SimpleSaveable>();
+                    saveable.MySavedData = "I am save data 3 with pre-everything load order";
+                    saveable.LoadOrderPriority = -1000;
+                    saveable.uniqueNameInScope = "three";
+
+                    topLevelSavedObject = new GameObject("save object 4");
+                    saveable = topLevelSavedObject.AddComponent<SimpleSaveable>();
+                    saveable.MySavedData = "I am save data 4 with pre-most things load order";
+                    saveable.LoadOrderPriority = -10;
+                    saveable.uniqueNameInScope = "four";
+
+                    var saveablePrefab = CreateSavablePrefab("topLevel");
+                    var prefabRegistry = ScriptableObject.CreateInstance<SaveablePrefabRegistry>();
+                    prefabRegistry.allObjects = new SaveablePrefabType[] { saveablePrefab.GetComponent<SaveablePrefab>().myPrefabType };
+                    prefabRegistry.AssignAllIDs();
+
+                    var prefabParentObject = new GameObject("prefab parent");
+                    prefabParentObject.AddComponent<SaveablePrefabParent>().prefabParentName = "a parent to prefabs";
+
+                    var saveManagerObject = new GameObject("save manager");
+                    var saveManager = saveManagerObject.AddComponent<WorldSaveManager>();
+
+                    saveManager.saveablePrefabRegistry = prefabRegistry;
+                }
+
+
+                yield return new EnterPlayMode();
+
+                SaveContext.instance.saveName = "test_save";
+                WorldSaveManager.DeleteSaveData();
+                {
+                    var saveablePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/topLevel_prefab.prefab");
+                    var prefabParent = GameObject.FindObjectOfType<SaveablePrefabParent>();
+
+                    var nextPrefab = GameObject.Instantiate(saveablePrefab, prefabParent.transform);
+                    var nextSaveable = nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>();
+                    nextSaveable.MySavedData = "first!";
+                    nextPrefab = GameObject.Instantiate(saveablePrefab, prefabParent.transform);
+                    nextSaveable = nextPrefab.transform.GetChild(0).GetComponent<SimpleSaveable>();
+                    nextSaveable.MySavedData = "second prefab instance";
+
+                    var saveables = GameObject.FindObjectsOfType<SimpleSaveable>();
+
+                    var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+                    Assert.NotNull(saveManager);
+
+                    saveManager.SaveActiveScene();
+                }
+                var sharedSaveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+                var loadOrderCapture = new CapturedLoadOrderAction();
+                SaveContext.instance.saveName = "test_save";
+                yield return loadOrderCapture.CaptureLoadOrderAndLoad(sharedSaveManager);
+                var loadedObjectsInOrder = loadOrderCapture.capturedLoadOrder;
+
+                var expectedSaveableOrder = new List<string>
+                {
+                    "I am save data 3 with pre-everything load order",
+                    "I am save data 4 with pre-most things load order",
+                    "I am save data 1 with default load order",
+                    "first!",
+                    "second prefab instance",
+                    "I am save data 2 with post-prefab load order"
+                };
+
+                Assert.AreEqual(expectedSaveableOrder.Count, loadedObjectsInOrder.Count);
+
+                for (int i = 0; i < expectedSaveableOrder.Count; i++)
+                {
+                    Assert.AreEqual(
+                        expectedSaveableOrder[i],
+                        loadedObjectsInOrder[i].MySavedData,
+                        $"Expected '{expectedSaveableOrder[i]}' to be saved at index {i}, but was '{loadedObjectsInOrder[i].MySavedData}'");
+                }
+
+                yield return new ExitPlayMode();
+                yield return null;
+
+                Object.DestroyImmediate(testSceneAsset);
+
+            }
+            finally
+            {
+                SaveContext.instance.saveName = "test_save";
+                AssetDatabase.DeleteAsset("Assets/topLevel_type.asset");
+                AssetDatabase.DeleteAsset("Assets/topLevel_prefab.prefab");
+                WorldSaveManager.DeleteSaveData();
+            }
+
+            // Use the Assert class to test conditions.
+            // Use yield to skip a frame.
+            yield return null;
+        }
+
+        private class CapturedLoadOrderAction
+        {
+            public List<SimpleSaveable> capturedLoadOrder;
+
+            public IEnumerator CaptureLoadOrderAndLoad(WorldSaveManager saveManager)
+            {
+                SaveSystemHooks.Instance.MidLoad += SetupCallbackHook;
+                SaveSystemHooks.Instance.PostLoad += TeardownCallbackHook;
+
+                capturedLoadOrder = new List<SimpleSaveable>();
+
+                yield return saveManager.LoadCoroutine("");
+                yield return null;
+            }
+
+            private void TeardownCallbackHook()
+            {
+                SimpleSaveable.OnLoad -= SimpleSaveableLoaded;
+                SaveSystemHooks.Instance.MidLoad -= SetupCallbackHook;
+                SaveSystemHooks.Instance.PostLoad -= TeardownCallbackHook;
+            }
+
+            private void SetupCallbackHook()
+            {
+                SimpleSaveable.OnLoad += SimpleSaveableLoaded;
+            }
+
+            private void SimpleSaveableLoaded(SimpleSaveable obj)
+            {
+                capturedLoadOrder.Add(obj);
+            }
+        }
+
+
+        // TODO: write test to assert load ordering is respected, inside and out of prefabs
     }
 }

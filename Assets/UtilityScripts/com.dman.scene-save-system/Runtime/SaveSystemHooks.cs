@@ -16,25 +16,35 @@
         }
 
         public delegate void SaveLifecycleHook();
-        public static void TriggerPreSave()
+        internal static void TriggerPreSave()
         {
             Instance.PreSave?.Invoke();
         }
         public event SaveLifecycleHook PreSave;
 
-        public static void TriggerPostSave()
+        internal static void TriggerPostSave()
         {
             Instance.PostSave?.Invoke();
         }
         public event SaveLifecycleHook PostSave;
 
-        public static void TriggerPreLoad()
+        internal static void TriggerPreLoad()
         {
             Instance.PreLoad?.Invoke();
         }
         public event SaveLifecycleHook PreLoad;
 
-        public static void TriggerPostLoad()
+        internal static void TriggerMidLoad()
+        {
+            Instance.MidLoad?.Invoke();
+        }
+        /// <summary>
+        /// an event which triggers after the new scene has been loaded, but before any of the save data is loaded into the scene
+        ///     This is meant primarily for testing purposes, it is recommended to avoid using this hook for gameplay
+        /// </summary>
+        public event SaveLifecycleHook MidLoad;
+
+        internal static void TriggerPostLoad()
         {
             Instance.PostLoad?.Invoke();
         }

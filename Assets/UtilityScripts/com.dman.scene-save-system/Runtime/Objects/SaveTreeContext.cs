@@ -1,6 +1,6 @@
 ﻿namespace Dman.SceneSaveSystem.Objects
 {
-    internal class SaveTreeContext
+    internal struct SaveTreeContext
     {
         /// <summary>
         /// set to true if the root of the current scope tree is a global scope
