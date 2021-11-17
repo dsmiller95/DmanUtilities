@@ -10,6 +10,9 @@ namespace Dman.ObjectSets
         {
             OnObjectSetChanged();
         }
+        /// <summary>
+        /// Override this method to respond to changes to the set of objects stored in the registry
+        /// </summary>
         public virtual void OnObjectSetChanged()
         {
 
