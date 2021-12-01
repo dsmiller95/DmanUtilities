@@ -1,12 +1,12 @@
 {
   "name": "com.dman.scene-save-system",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "displayName": "Scene save system",
   "description": "System to save data across the scene, as well as saving prefabs created directly under scene objects.",
   "unity": "2020.1",
   "dependencies": {
-    "com.dman.object-sets": "0.1.1",
-    "com.dman.utilities": "0.3.3"
+    "com.dman.object-sets": "0.1.2",
+    "com.dman.utilities": "0.3.13"
   },
   "author": {
     "name": "Dan Miller",
