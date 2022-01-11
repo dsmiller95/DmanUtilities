@@ -1,4 +1,5 @@
 using Dman.SceneSaveSystem.PlaymodeTests;
+using Dman.Utilities;
 using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
@@ -61,7 +62,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
             Assert.AreEqual("my save data has changed!", saveable1.MySavedData);
             Assert.AreEqual("my save data has changed, two!!", saveable2.MySavedData);
 
-            yield return saveManager.LoadCoroutine("");
+            yield return saveManager.LoadCoroutine(new SceneReference(""));
             yield return null;
 
             saveables = GameObject.FindObjectsOfType<SimpleSaveable>();
@@ -176,7 +177,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                 Assert.AreEqual("my save data has changed!", saveable.MySavedData);
 
-                yield return saveManager.LoadCoroutine("");
+                yield return saveManager.LoadCoroutine(new SceneReference(""));
                 yield return null;
             }
             {
@@ -283,7 +284,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                     saveManager.SaveActiveScene();
 
-                    yield return saveManager.LoadCoroutine("");
+                    yield return saveManager.LoadCoroutine(new SceneReference(""));
                     yield return null;
                 }
 
@@ -455,7 +456,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                     Assert.AreEqual("my global save data is different!", saveable2.MySavedData);
                     Assert.AreEqual("my special global data is different!", saveable3.MySavedData);
 
-                    yield return saveManager.LoadCoroutine("Assets/SceneB.unity");
+                    yield return saveManager.LoadCoroutine(new SceneReference("Assets/SceneB.unity"));
                     yield return null;
                 }
 
@@ -480,7 +481,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                     saveManager.SaveActiveScene();
 
-                    yield return saveManager.LoadCoroutine("Assets/SceneA.unity");
+                    yield return saveManager.LoadCoroutine(new SceneReference("Assets/SceneA.unity"));
                     yield return null;
                 }
 
@@ -501,7 +502,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                     Assert.AreEqual("my global save data is different... again", saveable2.MySavedData);
                     Assert.AreEqual("my special global data is different!", saveable3.MySavedData);
 
-                    yield return saveManager.LoadCoroutine("Assets/SceneB.unity");
+                    yield return saveManager.LoadCoroutine(new SceneReference("Assets/SceneB.unity"));
                     yield return null;
                 }
 
@@ -628,7 +629,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                     saveManager.SaveActiveScene();
 
-                    yield return saveManager.LoadCoroutine("Assets/SceneA.unity");
+                    yield return saveManager.LoadCoroutine(new SceneReference("Assets/SceneA.unity"));
                     yield return null;
                 }
 
@@ -654,7 +655,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                     saveManager.SaveActiveScene();
 
-                    yield return saveManager.LoadCoroutine("Assets/SceneB.unity");
+                    yield return saveManager.LoadCoroutine(new SceneReference("Assets/SceneB.unity"));
                     yield return null;
                 }
 
@@ -677,7 +678,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                     saveManager.SaveActiveScene();
 
-                    yield return saveManager.LoadCoroutine("Assets/SceneA.unity");
+                    yield return saveManager.LoadCoroutine(new SceneReference("Assets/SceneA.unity"));
                     yield return null;
                 }
 
@@ -785,7 +786,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                     Assert.AreEqual("my save data has changed!", saveable1.MySavedData);
 
-                    yield return saveManager.LoadCoroutine("Assets/SceneB.unity");
+                    yield return saveManager.LoadCoroutine(new SceneReference("Assets/SceneB.unity"));
                     yield return null;
                 }
 
@@ -801,7 +802,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                     saveManager.SaveActiveScene();
 
-                    yield return saveManager.LoadCoroutine("Assets/SceneA.unity");
+                    yield return saveManager.LoadCoroutine(new SceneReference("Assets/SceneA.unity"));
                     yield return null;
                 }
 
@@ -829,7 +830,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                     saveManager.SaveActiveScene();
 
-                    yield return saveManager.LoadCoroutine("Assets/SceneA.unity");
+                    yield return saveManager.LoadCoroutine(new SceneReference("Assets/SceneA.unity"));
                     yield return null;
                 }
 
@@ -980,18 +981,18 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                 capturedLoadOrder = new List<SimpleSaveable>();
 
-                yield return saveManager.LoadCoroutine("");
+                yield return saveManager.LoadCoroutine(new SceneReference(""));
                 yield return null;
             }
 
-            private void TeardownCallbackHook()
+            private void TeardownCallbackHook(SceneReference scene)
             {
                 SimpleSaveable.OnLoad -= SimpleSaveableLoaded;
                 SaveSystemHooks.Instance.MidLoad -= SetupCallbackHook;
                 SaveSystemHooks.Instance.PostLoad -= TeardownCallbackHook;
             }
 
-            private void SetupCallbackHook()
+            private void SetupCallbackHook(SceneReference scene)
             {
                 SimpleSaveable.OnLoad += SimpleSaveableLoaded;
             }

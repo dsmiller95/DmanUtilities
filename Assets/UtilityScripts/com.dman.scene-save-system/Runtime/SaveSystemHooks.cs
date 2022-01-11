@@ -1,4 +1,7 @@
-﻿namespace Dman.SceneSaveSystem
+﻿using Dman.Utilities;
+using UnityEngine.SceneManagement;
+
+namespace Dman.SceneSaveSystem
 {
     public class SaveSystemHooks
     {
@@ -15,39 +18,40 @@
             }
         }
 
-        public delegate void SaveLifecycleHook();
-        internal static void TriggerPreSave()
-        {
-            Instance.PreSave?.Invoke();
-        }
+        public delegate void SaveLifecycleHook(SceneReference targetScene);
+
         public event SaveLifecycleHook PreSave;
-
-        internal static void TriggerPostSave()
+        internal static void TriggerPreSave(SceneReference targetScene)
         {
-            Instance.PostSave?.Invoke();
+            Instance.PreSave?.Invoke(targetScene);
         }
+
         public event SaveLifecycleHook PostSave;
-
-        internal static void TriggerPreLoad()
+        internal static void TriggerPostSave(SceneReference targetScene)
         {
-            Instance.PreLoad?.Invoke();
+            Instance.PostSave?.Invoke(targetScene);
         }
+
         public event SaveLifecycleHook PreLoad;
-
-        internal static void TriggerMidLoad()
+        internal static void TriggerPreLoad(SceneReference targetScene)
         {
-            Instance.MidLoad?.Invoke();
+            Instance.PreLoad?.Invoke(targetScene);
         }
+
         /// <summary>
         /// an event which triggers after the new scene has been loaded, but before any of the save data is loaded into the scene
         ///     This is meant primarily for testing purposes, it is recommended to avoid using this hook for gameplay
         /// </summary>
         public event SaveLifecycleHook MidLoad;
-
-        internal static void TriggerPostLoad()
+        internal static void TriggerMidLoad(SceneReference targetScene)
         {
-            Instance.PostLoad?.Invoke();
+            Instance.MidLoad?.Invoke(targetScene);
         }
+
         public event SaveLifecycleHook PostLoad;
+        internal static void TriggerPostLoad(SceneReference targetScene)
+        {
+            Instance.PostLoad?.Invoke(targetScene);
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Dman.SceneSaveSystem.Objects;
 using Dman.SceneSaveSystem.Objects.Identifiers;
+using Dman.Utilities;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,9 +21,25 @@ namespace Dman.SceneSaveSystem
             SerializationManager.DeleteAll(SaveContext.instance.saveName);
         }
 
+
         public void SaveActiveScene()
         {
-            this.Save(SceneManager.GetActiveScene());
+            this.Save(SceneReference.Active);
+        }
+
+
+        public void SwapScenes(SceneReference oldScene, SceneReference nextScene)
+        {
+            this.StartCoroutine(this.SwapScenesCoroutine(oldScene, nextScene));
+        }
+        private IEnumerator SwapScenesCoroutine(SceneReference oldScene, SceneReference nextScene)
+        {
+            var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
+            saveManager.Save(oldScene);
+
+            yield return SceneManager.UnloadSceneAsync(oldScene.ScenePointer);
+
+            yield return saveManager.LoadCoroutine(nextScene, LoadSceneMode.Additive);
         }
 
         /// <summary>
@@ -30,9 +47,9 @@ namespace Dman.SceneSaveSystem
         /// then find all saveablePrefabs, and get their identifying information and all the information of the 
         ///     components inside each prefab. save all of these as a list
         /// </summary>
-        public void Save(Scene sceneToSave)
+        public void Save(SceneReference sceneToSave)
         {
-            var saveScopes = GetTopLevelSaveScopeData(sceneToSave);
+            var saveScopes = GetTopLevelSaveScopeData(sceneToSave.ScenePointer);
             var globalScope = saveScopes.FirstOrDefault(x => x.scopeIdentifier is GlobalSaveScopeIdentifier);
             var sceneScope = saveScopes.FirstOrDefault(x => x.scopeIdentifier is SceneSaveScopeIdentifier);
 
@@ -64,18 +81,18 @@ namespace Dman.SceneSaveSystem
             oldGlobalScope.InsertSaveData(lastSavedSceneSaveData);
 
 
-            SaveSystemHooks.TriggerPreSave();
+            SaveSystemHooks.TriggerPreSave(sceneToSave);
             SerializationManager.Save(sceneScope, SaveContext.instance.saveName);
             SerializationManager.Save(oldGlobalScope, SaveContext.instance.saveName);
-            SaveSystemHooks.TriggerPostSave();
+            SaveSystemHooks.TriggerPostSave(sceneToSave);
         }
 
         /// <summary>
         /// unload the active scene, and wait for the scene at <paramref name="scenePath"/> to be loaded.
         /// </summary>
-        public void Load(string scenePath)
+        public void Load(SceneReference sceneToLoad, LoadSceneMode loadMode = LoadSceneMode.Single)
         {
-            StartCoroutine(LoadCoroutine(scenePath));
+            StartCoroutine(LoadCoroutine(sceneToLoad, loadMode));
         }
         /// <summary>
         /// loads the scene last saved in the current save name. Use this when, for example, you are loading a whole game
@@ -92,19 +109,21 @@ namespace Dman.SceneSaveSystem
         /// </summary>
         /// <param name="scenePath"></param>
         /// <returns></returns>
-        public IEnumerator LoadCoroutine(string scenePath = null)
+        public IEnumerator LoadCoroutine(SceneReference sceneToLoad = null, LoadSceneMode loadMode = LoadSceneMode.Single)
         {
-            SaveSystemHooks.TriggerPreLoad();
             DontDestroyOnLoad(gameObject);
 
             var globalScope = new GlobalSaveScopeIdentifier();
             var globalData = SerializationManager.Load<SaveScopeData>(globalScope, SaveContext.instance.saveName);
 
-            if (scenePath == null)
+            if (sceneToLoad == null)
             {
                 if (globalData.DataInScopeDictionary.TryGetValue(LastSavedSceneSaveDataId, out var saveData) && saveData.savedSerializableObject is SceneSaveScopeIdentifier savedScene)
                 {
-                    scenePath = savedScene.scenePath;
+                    sceneToLoad = new SceneReference
+                    {
+                        scenePath = savedScene.scenePath
+                    };
                 }
                 else
                 {
@@ -113,22 +132,23 @@ namespace Dman.SceneSaveSystem
                 }
             }
 
-            var sceneIndexToLoad = SceneUtility.GetBuildIndexByScenePath(scenePath);
+            var sceneIndexToLoad = sceneToLoad.BuildIndex;
             Scene loadingScene;
+            SaveSystemHooks.TriggerPreLoad(sceneToLoad);
             if (sceneIndexToLoad >= 0)
             {
-                loadingScene = SceneManager.LoadScene(sceneIndexToLoad, new LoadSceneParameters(LoadSceneMode.Single));
+                loadingScene = SceneManager.LoadScene(sceneIndexToLoad, new LoadSceneParameters(loadMode));
             }
             else
             {
-                var sceneNameToLoad = SceneNameFromPath(scenePath);
-                loadingScene = SceneManager.LoadScene(sceneNameToLoad, new LoadSceneParameters(LoadSceneMode.Single));
+                var sceneNameToLoad = SceneNameFromPath(sceneToLoad.scenePath);
+                loadingScene = SceneManager.LoadScene(sceneNameToLoad, new LoadSceneParameters(loadMode));
             }
             yield return new WaitUntil(() => loadingScene.isLoaded);
 
-            SaveSystemHooks.TriggerMidLoad();
+            SaveSystemHooks.TriggerMidLoad(sceneToLoad);
             LoadIntoSingleScene(loadingScene, saveablePrefabRegistry, globalData);
-            SaveSystemHooks.TriggerPostLoad();
+            SaveSystemHooks.TriggerPostLoad(sceneToLoad);
             yield return null;
             Destroy(gameObject);
         }

@@ -16,7 +16,7 @@ namespace Dman.SceneSaveSystem
         {
             saveManager.SaveActiveScene();
 
-            saveManager.Load(targetScene.scenePath);
+            saveManager.Load(targetScene);
         }
     }
 }
