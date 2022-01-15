@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.SceneManagement;
 
 namespace Dman.Utilities
@@ -7,12 +9,25 @@ namespace Dman.Utilities
     public class SceneReference
     {
         public static SceneReference Active => new SceneReference(SceneManager.GetActiveScene().path);
+        public static List<SceneReference> Loaded => LoadedGenerator.ToList();
+        private static IEnumerable<SceneReference> LoadedGenerator
+        {
+            get
+            {
+                for (int i = 0; i < SceneManager.sceneCount; i++)
+                {
+                    yield return new SceneReference(SceneManager.GetSceneAt(i));
+                }
+            }
+        }
 
         public string scenePath;
+        public string Name => System.IO.Path.GetFileNameWithoutExtension(scenePath);
         public int BuildIndex => SceneUtility.GetBuildIndexByScenePath(scenePath);
 
-        public Scene ScenePointer => SceneManager.GetSceneByBuildIndex(BuildIndex);
+        public Scene ScenePointerIfLoaded => SceneManager.GetSceneByBuildIndex(BuildIndex);
 
+        public bool IsLoaded => ScenePointerIfLoaded.isLoaded;
 
         public SceneReference()
         {
@@ -22,6 +37,27 @@ namespace Dman.Utilities
         {
             this.scenePath = path;
         }
+        public SceneReference(Scene sceneObject)
+        {
+            this.scenePath = sceneObject.path;
+        }
 
+
+        public override bool Equals(object obj)
+        {
+            if (obj is SceneReference sceneRef)
+            {
+                return sceneRef.scenePath == scenePath;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return scenePath.GetHashCode();
+        }
+
+        public static bool operator ==(SceneReference a, SceneReference b) => a?.Equals(b) ?? (b == null);
+        public static bool operator !=(SceneReference a, SceneReference b) => !(a.scenePath == b.scenePath);
     }
 }

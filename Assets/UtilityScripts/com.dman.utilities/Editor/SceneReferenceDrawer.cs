@@ -31,7 +31,7 @@ namespace Dman.Utilities
             property.serializedObject.Update();
 
             EditorGUI.BeginChangeCheck();
-            var newScene = EditorGUI.ObjectField(position, "scene", oldScene, typeof(SceneAsset), false) as SceneAsset;
+            var newScene = EditorGUI.ObjectField(position, property.displayName, oldScene, typeof(SceneAsset), false) as SceneAsset;
 
             if (EditorGUI.EndChangeCheck())
             {

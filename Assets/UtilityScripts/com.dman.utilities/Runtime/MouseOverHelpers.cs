@@ -36,6 +36,11 @@ namespace Dman.Utilities
             {
                 return false;
             }
+            if (Camera.main == null)
+            {
+                Debug.LogWarning("No active camera");
+                return false;
+            }
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out var innerHit, 100, mask))
             {
