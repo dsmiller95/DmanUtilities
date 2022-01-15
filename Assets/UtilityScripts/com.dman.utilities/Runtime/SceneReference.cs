@@ -47,7 +47,7 @@ namespace Dman.Utilities
         {
             if (obj is SceneReference sceneRef)
             {
-                return sceneRef.scenePath == scenePath;
+                return sceneRef == this;
             }
             return false;
         }
@@ -57,7 +57,7 @@ namespace Dman.Utilities
             return scenePath.GetHashCode();
         }
 
-        public static bool operator ==(SceneReference a, SceneReference b) => a?.Equals(b) ?? (b == null);
+        public static bool operator ==(SceneReference a, SceneReference b) => a?.scenePath == b?.scenePath;
         public static bool operator !=(SceneReference a, SceneReference b) => !(a.scenePath == b.scenePath);
     }
 }
