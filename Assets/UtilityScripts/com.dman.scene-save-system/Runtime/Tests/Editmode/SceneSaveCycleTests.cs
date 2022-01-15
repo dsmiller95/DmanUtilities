@@ -132,7 +132,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                 var saveablePrefab = CreateSavablePrefab("topLevel");
                 var prefabRegistry = ScriptableObject.CreateInstance<SaveablePrefabRegistry>();
-                prefabRegistry.allObjects = new SaveablePrefabType[] { saveablePrefab.GetComponent<SaveablePrefab>().myPrefabType };
+                prefabRegistry.allObjects = new List<SaveablePrefabType> { saveablePrefab.GetComponent<SaveablePrefab>().myPrefabType };
                 prefabRegistry.AssignAllIDs();
 
                 var prefabParentObject = new GameObject("prefab parent");
@@ -231,7 +231,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                     });
                     var nestedPrefab = CreateSavablePrefab("nested");
 
-                    prefabRegistry.allObjects = new SaveablePrefabType[] {
+                    prefabRegistry.allObjects = new List<SaveablePrefabType> {
                         topLevelPrefab.GetComponent<SaveablePrefab>().myPrefabType,
                         nestedPrefab.GetComponent<SaveablePrefab>().myPrefabType
                     };
@@ -554,7 +554,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
                 var prefabRegistry = ScriptableObject.CreateInstance<SaveablePrefabRegistry>();
                 var saveablePrefab = CreateSavablePrefab("topLevel");
                 var prefabType = AssetDatabase.LoadAssetAtPath<SaveablePrefabType>("Assets/topLevel_type.asset");
-                prefabRegistry.allObjects = new SaveablePrefabType[] { prefabType };
+                prefabRegistry.allObjects = new List<SaveablePrefabType> { prefabType };
                 prefabRegistry.AssignAllIDs();
                 AssetDatabase.CreateAsset(prefabRegistry, $"Assets/prefab_type_registry.asset");
             }
@@ -890,7 +890,7 @@ namespace Dman.SceneSaveSystem.EditmodeTests
 
                     var saveablePrefab = CreateSavablePrefab("topLevel");
                     var prefabRegistry = ScriptableObject.CreateInstance<SaveablePrefabRegistry>();
-                    prefabRegistry.allObjects = new SaveablePrefabType[] { saveablePrefab.GetComponent<SaveablePrefab>().myPrefabType };
+                    prefabRegistry.allObjects = new List<SaveablePrefabType> { saveablePrefab.GetComponent<SaveablePrefab>().myPrefabType };
                     prefabRegistry.AssignAllIDs();
 
                     var prefabParentObject = new GameObject("prefab parent");

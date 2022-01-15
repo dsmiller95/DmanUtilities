@@ -2,7 +2,7 @@
     "name": "ReactiveVariablesEditor",
     "rootNamespace": "Dman.ReactiveVariables",
     "references": [
-        "ReactiveVariables"
+        "GUID:231dcea1322ac47488adf40ff102ddba"
     ],
     "includePlatforms": [
         "Editor"
