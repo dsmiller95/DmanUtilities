@@ -5,10 +5,8 @@ namespace Dman.ReactiveVariables
 {
     public abstract class GenericVariable<T> : ScriptableObject
     {
-#if UNITY_EDITOR
         [Multiline]
         public string DeveloperDescription = "";
-#endif
         private BehaviorSubject<T> _value = new BehaviorSubject<T>(default);
         public BehaviorSubject<T> Value => _value;
 

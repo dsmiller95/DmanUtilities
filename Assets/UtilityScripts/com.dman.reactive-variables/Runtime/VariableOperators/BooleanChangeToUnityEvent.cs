@@ -7,9 +7,11 @@ namespace Dman.ReactiveVariables.VariableOperators
     public class BooleanChangeToUnityEvent : MonoBehaviour
     {
         public BooleanVariable booleanToWatch;
+        public bool triggerOnAwake = false;
 
         public UnityEvent OnChangedToTrue;
         public UnityEvent OnChangedToFalse;
+
 
         private void Awake()
         {
@@ -22,12 +24,25 @@ namespace Dman.ReactiveVariables.VariableOperators
                         if (pair.Current)
                         {
                             OnChangedToTrue?.Invoke();
-                        }else
+                        }
+                        else
                         {
                             OnChangedToFalse.Invoke();
                         }
                     }
                 }).AddTo(this);
+
+            if (triggerOnAwake)
+            {
+                if (booleanToWatch.CurrentValue)
+                {
+                    OnChangedToTrue.Invoke();
+                }
+                else
+                {
+                    OnChangedToFalse.Invoke();
+                }
+            }
         }
     }
 }
