@@ -1,10 +1,12 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 namespace Dman.ObjectSets
 {
     public abstract class UniqueObjectRegistry : ScriptableObject
     {
-        public abstract IDableObject[] AllObjects { get; }
+        public abstract List<IDableObject> AllObjects { get; set; }
 
         private void Awake()
         {
@@ -19,7 +21,7 @@ namespace Dman.ObjectSets
         }
         public void AssignAllIDs()
         {
-            for (var i = 0; i < AllObjects.Length; i++)
+            for (var i = 0; i < AllObjects.Count; i++)
             {
                 var uniqueObject = AllObjects[i];
                 uniqueObject.myId = i;
@@ -36,8 +38,12 @@ namespace Dman.ObjectSets
     /// <typeparam name="T"></typeparam>
     public abstract class UniqueObjectRegistryWithAccess<T> : UniqueObjectRegistry where T : IDableObject
     {
-        public T[] allObjects;
-        public override IDableObject[] AllObjects => allObjects;
+        public List<T> allObjects;
+        public override List<IDableObject> AllObjects
+        {
+            get => allObjects.Cast<IDableObject>().ToList();
+            set => allObjects = value.Cast<T>().ToList();
+        }
 
         public T GetUniqueObjectFromID(int id)
         {

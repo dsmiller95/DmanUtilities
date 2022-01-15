@@ -2,7 +2,8 @@
     "name": "ObjectSetsEditor",
     "rootNamespace": "Dman.ObjectSets",
     "references": [
-        "GUID:c89e1c2639f65d549a075aac1877b9a1"
+        "GUID:c89e1c2639f65d549a075aac1877b9a1",
+        "GUID:fd04b74d960526c4bb63c5786630d1a2"
     ],
     "includePlatforms": [
         "Editor"
