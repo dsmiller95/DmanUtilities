@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dman.Utilities;
+using System;
 using UnityEngine.SceneManagement;
 
 namespace Dman.SceneSaveSystem.Objects.Identifiers
@@ -6,22 +7,20 @@ namespace Dman.SceneSaveSystem.Objects.Identifiers
     [Serializable]
     internal class SceneSaveScopeIdentifier : ISaveScopeIdentifier
     {
-        public string scenePath;
-        public string sceneName;
+        public SceneReference scene;
 
-        public SceneSaveScopeIdentifier(Scene scene)
+        public SceneSaveScopeIdentifier(SceneReference scene)
         {
-            this.scenePath = scene.path;
-            this.sceneName = scene.name;
+            this.scene = scene;
         }
 
         public string UniqueSemiReadableName
         {
             get
             {
-                var pathBytes = System.Text.Encoding.UTF8.GetBytes(scenePath);
+                var pathBytes = System.Text.Encoding.UTF8.GetBytes(scene.scenePath);
                 var base64Path = System.Convert.ToBase64String(pathBytes);
-                return $"Scene_{sceneName}_{base64Path}";
+                return $"Scene_{scene.Name}_{base64Path}";
             }
         }
 
@@ -31,7 +30,7 @@ namespace Dman.SceneSaveSystem.Objects.Identifiers
             {
                 return false;
             }
-            return casted.scenePath == scenePath && casted.sceneName == sceneName;
+            return casted.scene == scene;
         }
     }
 }

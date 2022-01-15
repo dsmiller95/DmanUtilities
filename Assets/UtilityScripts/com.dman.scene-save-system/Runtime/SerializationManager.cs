@@ -1,6 +1,7 @@
 ﻿using Dman.SceneSaveSystem.Objects;
 using Dman.SceneSaveSystem.Objects.Identifiers;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
@@ -10,7 +11,6 @@ namespace Dman.SceneSaveSystem
     {
 
         public static string saveFileSuffix = ".dat";
-
 
         internal static bool Save(SaveScopeData saveScopeData, string saveName)
         {
@@ -84,6 +84,10 @@ namespace Dman.SceneSaveSystem
                     File.Delete(savePath);
                 }
             }
+        }
+        internal static void DeleteChunks(string saveName, params ISaveScopeIdentifier[] saveScope)
+        {
+            DeleteChunks(saveName, saveScope.Select(x => x.UniqueSemiReadableName + saveFileSuffix).ToArray());
         }
 
         internal static T Load<T>(ISaveScopeIdentifier saveScope, string saveName) where T : class

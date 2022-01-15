@@ -21,7 +21,10 @@ namespace Dman.SceneSaveSystem
             SerializationManager.DeleteAll(SaveContext.instance.saveName);
         }
 
-
+        public void DeleteSaveData(SceneReference scene)
+        {
+            SerializationManager.DeleteChunks(SaveContext.instance.saveName, new SceneSaveScopeIdentifier(scene));
+        }
         public void SaveActiveScene()
         {
             this.Save(SceneReference.Active);
@@ -37,8 +40,10 @@ namespace Dman.SceneSaveSystem
             var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
             saveManager.Save(oldScene);
 
-            yield return SceneManager.UnloadSceneAsync(oldScene.ScenePointer);
+            Debug.Log($"unloading scene {oldScene.Name} [{oldScene.BuildIndex}]");
+            yield return SceneManager.UnloadSceneAsync(oldScene.ScenePointerIfLoaded);
 
+            Debug.Log($"loading scene {nextScene.Name} [{nextScene.BuildIndex}]");
             yield return saveManager.LoadCoroutine(nextScene, LoadSceneMode.Additive);
         }
 
@@ -49,7 +54,11 @@ namespace Dman.SceneSaveSystem
         /// </summary>
         public void Save(SceneReference sceneToSave)
         {
-            var saveScopes = GetTopLevelSaveScopeData(sceneToSave.ScenePointer);
+            if (!sceneToSave.IsLoaded)
+            {
+                throw new System.InvalidOperationException("Cannot save a scene which is not loaded");
+            }
+            var saveScopes = GetTopLevelSaveScopeData(sceneToSave);
             var globalScope = saveScopes.FirstOrDefault(x => x.scopeIdentifier is GlobalSaveScopeIdentifier);
             var sceneScope = saveScopes.FirstOrDefault(x => x.scopeIdentifier is SceneSaveScopeIdentifier);
 
@@ -111,7 +120,12 @@ namespace Dman.SceneSaveSystem
         /// <returns></returns>
         public IEnumerator LoadCoroutine(SceneReference sceneToLoad = null, LoadSceneMode loadMode = LoadSceneMode.Single)
         {
-            DontDestroyOnLoad(gameObject);
+            // only protect continuity of this object if its scene will be unloaded
+            if (loadMode == LoadSceneMode.Single)
+            {
+                Debug.Log($"load mode is single");
+                DontDestroyOnLoad(gameObject);
+            }
 
             var globalScope = new GlobalSaveScopeIdentifier();
             var globalData = SerializationManager.Load<SaveScopeData>(globalScope, SaveContext.instance.saveName);
@@ -120,10 +134,7 @@ namespace Dman.SceneSaveSystem
             {
                 if (globalData.DataInScopeDictionary.TryGetValue(LastSavedSceneSaveDataId, out var saveData) && saveData.savedSerializableObject is SceneSaveScopeIdentifier savedScene)
                 {
-                    sceneToLoad = new SceneReference
-                    {
-                        scenePath = savedScene.scenePath
-                    };
+                    sceneToLoad = savedScene.scene;
                 }
                 else
                 {
@@ -132,32 +143,30 @@ namespace Dman.SceneSaveSystem
                 }
             }
 
-            var sceneIndexToLoad = sceneToLoad.BuildIndex;
             Scene loadingScene;
             SaveSystemHooks.TriggerPreLoad(sceneToLoad);
-            if (sceneIndexToLoad >= 0)
+            if (sceneToLoad.BuildIndex >= 0)
             {
-                loadingScene = SceneManager.LoadScene(sceneIndexToLoad, new LoadSceneParameters(loadMode));
+                loadingScene = SceneManager.LoadScene(sceneToLoad.BuildIndex, new LoadSceneParameters(loadMode));
             }
             else
             {
-                var sceneNameToLoad = SceneNameFromPath(sceneToLoad.scenePath);
-                loadingScene = SceneManager.LoadScene(sceneNameToLoad, new LoadSceneParameters(loadMode));
+                // TODO: outdated?
+                loadingScene = SceneManager.LoadScene(sceneToLoad.Name, new LoadSceneParameters(loadMode));
             }
             yield return new WaitUntil(() => loadingScene.isLoaded);
 
             SaveSystemHooks.TriggerMidLoad(sceneToLoad);
-            LoadIntoSingleScene(loadingScene, saveablePrefabRegistry, globalData);
+            LoadIntoSingleScene(sceneToLoad, saveablePrefabRegistry, globalData);
             SaveSystemHooks.TriggerPostLoad(sceneToLoad);
             yield return null;
-            Destroy(gameObject);
-        }
-        private static string SceneNameFromPath(string path)
-        {
-            return System.IO.Path.GetFileNameWithoutExtension(path);
+            if (loadMode == LoadSceneMode.Single)
+            {
+                Destroy(gameObject);
+            }
         }
 
-        private static void LoadIntoSingleScene(Scene scene, SaveablePrefabRegistry saveablePrefabRegistry, SaveScopeData globalData)
+        private static void LoadIntoSingleScene(SceneReference scene, SaveablePrefabRegistry saveablePrefabRegistry, SaveScopeData globalData)
         {
             var sceneScopeIdentity = new SceneSaveScopeIdentifier(scene);
 
@@ -170,7 +179,7 @@ namespace Dman.SceneSaveSystem
                 globalScope = globalData,
                 prefabRegistry = saveablePrefabRegistry
             };
-            var allLoadablesAtScene = scene.GetRootGameObjects()
+            var allLoadablesAtScene = scene.ScenePointerIfLoaded.GetRootGameObjects()
                 .SelectMany(x => ExtractLoadableObjectsFromScope(x.transform, iterationContext))
                 .OrderBy(x => x.LoadOrder)
                 .ToList();
@@ -241,12 +250,12 @@ namespace Dman.SceneSaveSystem
             }
         }
 
-        private static List<SaveScopeData> GetTopLevelSaveScopeData(Scene sceneToSave)
+        private static List<SaveScopeData> GetTopLevelSaveScopeData(SceneReference sceneToSave)
         {
             var sceneScopeData = new SaveScopeData(new SceneSaveScopeIdentifier(sceneToSave));
             var globalScopeData = new SaveScopeData(new GlobalSaveScopeIdentifier());
 
-            var sceneScopeStack = new Stack<GameObject>(sceneToSave.GetRootGameObjects());
+            var sceneScopeStack = new Stack<GameObject>(sceneToSave.ScenePointerIfLoaded.GetRootGameObjects());
             var globalScopeStack = new Stack<GameObject>();
 
             var saveTreeContext = new SaveTreeContext
