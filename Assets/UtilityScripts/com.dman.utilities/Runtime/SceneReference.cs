@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Dman.Utilities
@@ -42,6 +43,10 @@ namespace Dman.Utilities
             this.scenePath = sceneObject.path;
         }
 
+        public bool ContainsGameObject(GameObject go)
+        {
+            return go.scene.buildIndex == this.BuildIndex;
+        }
 
         public override bool Equals(object obj)
         {

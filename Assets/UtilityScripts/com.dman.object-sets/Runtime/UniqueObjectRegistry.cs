@@ -47,7 +47,7 @@ namespace Dman.ObjectSets
 
         public T GetUniqueObjectFromID(int id)
         {
-            return allObjects[id];
+            return allObjects[id];  
         }
     }
 }
