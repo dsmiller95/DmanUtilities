@@ -8,7 +8,7 @@ namespace Dman.ReactiveVariables.VariableOperators
     public class FloatVariableIncrementor : MonoBehaviour
     {
         public FloatVariable variable;
-        public float incrementPerSecond;
+        public FloatReference incrementPerSecond;
 
         private void Update()
         {

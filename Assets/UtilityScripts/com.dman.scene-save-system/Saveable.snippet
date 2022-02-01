@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+    <CodeSnippet Format="1.0.0">
+        <Header>
+            <Title>ISaveable interface implementation</Title>
+			<Author>Dman</Author>
+			<Description>Implements ISaveable using a transport serialization object</Description>
+			<Shortcut>save</Shortcut>
+        </Header>
+        <Snippet>
+            <Code 
+			Language="CSharp"
+			Kind="method decl">
+                <![CDATA[
+        #region ISaveable
+
+        public string UniqueSaveIdentifier => "$className$_saveID";
+        public int LoadOrderPriority => 0;
+
+        [System.Serializable]
+        class SaveObject
+        {
+			$end$
+            public SaveObject($className$ source)
+            {
+            }
+
+            public void Apply($className$ target)
+            {
+            }
+        }
+
+        public object GetSaveObject()
+        {
+            return new SaveObject(this);
+        }
+
+        public void SetupFromSaveObject(object save)
+        {
+            if (save is SaveObject saveObj)
+            {
+                saveObj.Apply(this);
+            }
+        }
+        #endregion]]>
+            </Code>
+			<Declarations>
+				<Literal>
+					<ID>saveId</ID>
+					<ToolTip>Choose a unique id for this script to key its save data by</ToolTip>
+					<Default>someUniqueName</Default>
+				</Literal>
+				<Literal default="true" Editable="false">
+					<ID>className</ID>
+                    <Function>ClassName()</Function>
+					<ToolTip>The name of the implementing class</ToolTip>
+					<Default>MyClassName</Default>
+				</Literal>
+			</Declarations>
+			<Imports>
+				<Import>
+					<Namespace>Dman.SceneSaveSystem</Namespace>
+				</Import>
+			</Imports>
+        </Snippet>
+    </CodeSnippet>
+</CodeSnippets>
