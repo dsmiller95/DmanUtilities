@@ -263,18 +263,31 @@ namespace Dman.SceneSaveSystem
                 isGlobal = false
             };
 
-            while (sceneScopeStack.Count > 0)
+            DigestSaveObjectStack(sceneScopeStack, sceneScopeData, saveTreeContext, globalScopeStack);
+
+            DigestSaveObjectStack(globalScopeStack, globalScopeData, saveTreeContext);
+            return new List<SaveScopeData> { sceneScopeData, globalScopeData };
+        }
+
+        private static void DigestSaveObjectStack(Stack<GameObject> stackToDigest, SaveScopeData targetSaveScope, SaveTreeContext saveTreeContext, Stack<GameObject> globalFalloffStack = null)
+        {
+            while (stackToDigest.Count > 0)
             {
-                var nextObj = sceneScopeStack.Pop();
-                if (nextObj.GetComponent<GlobalSaveFlag>() != null)
+                var nextObj = stackToDigest.Pop();
+                if (globalFalloffStack != null && nextObj.GetComponent<GlobalSaveFlag>() != null)
                 {
                     // global save flags push this game object and all under it into the global scope
-                    globalScopeStack.Push(nextObj);
+                    globalFalloffStack.Push(nextObj);
+                    continue;
+                }
+
+                if (nextObj.GetComponent<DontSaveFlag>() != null)
+                {
                     continue;
                 }
 
                 var saveables = nextObj.GetComponents<ISaveableData>();
-                sceneScopeData.dataInScope.AddRange(saveables
+                targetSaveScope.dataInScope.AddRange(saveables
                     .Select(x => new SaveData
                     {
                         savedSerializableObject = x.GetSaveObject(),
@@ -285,44 +298,15 @@ namespace Dman.SceneSaveSystem
                 if (prefabParent != null)
                 {
                     // prefab parent flags push only the game objects under this scope into a sub-scope
-                    sceneScopeData.childScopes.AddRange(GetPrefabSaveScopeData(prefabParent, saveTreeContext));
+                    targetSaveScope.childScopes.AddRange(GetPrefabSaveScopeData(prefabParent, saveTreeContext));
                     continue;
                 }
 
                 foreach (Transform childTransform in nextObj.transform)
                 {
-                    sceneScopeStack.Push(childTransform.gameObject);
+                    stackToDigest.Push(childTransform.gameObject);
                 }
             }
-
-
-            while (globalScopeStack.Count > 0)
-            {
-                var nextObj = globalScopeStack.Pop();
-
-                var saveables = nextObj.GetComponents<ISaveableData>();
-                globalScopeData.dataInScope.AddRange(saveables
-                    .Select(x => new SaveData
-                    {
-                        savedSerializableObject = x.GetSaveObject(),
-                        uniqueSaveDataId = x.UniqueSaveIdentifier
-                    }));
-
-                var prefabParent = nextObj.GetComponent<SaveablePrefabParent>();
-                if (prefabParent != null)
-                {
-                    // prefab parent flags push only the game objects under this scope into a sub-scope
-                    globalScopeData.childScopes.AddRange(GetPrefabSaveScopeData(prefabParent, saveTreeContext));
-                    continue;
-                }
-
-                foreach (Transform childTransform in nextObj.transform)
-                {
-                    globalScopeStack.Push(childTransform.gameObject);
-                }
-            }
-
-            return new List<SaveScopeData> { sceneScopeData, globalScopeData };
         }
 
         private static List<SaveScopeData> GetPrefabSaveScopeData(SaveablePrefabParent prefabParent, SaveTreeContext treeContext)
