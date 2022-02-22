@@ -18,9 +18,14 @@ namespace Dman.ReactiveVariables.VariableOperators
                 .StartWith(reference.CurrentValue)
                 .Subscribe(next =>
                 {
-                    var newText = string.Format(formatString, next);
-                    TextUpdate?.Invoke(newText);
+                    this.FormatFloat(next);
                 }).AddTo(this);
+        }
+
+        public void FormatFloat(float value)
+        {
+            var newText = string.Format(formatString, value);
+            TextUpdate?.Invoke(newText);
         }
     }
 }
