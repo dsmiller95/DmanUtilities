@@ -20,6 +20,7 @@ namespace Dman.ObjectSets
                 {
                     EditorUtility.SetDirty(registryObject);
                 }
+                EditorUtility.SetDirty(registry);
                 Debug.Log("Successfully reset all object IDs. All save files may be invalid.");
             }
             if (GUILayout.Button("Auto populate"))
@@ -42,6 +43,7 @@ namespace Dman.ObjectSets
                 {
                     EditorUtility.SetDirty(registryObject);
                 }
+                EditorUtility.SetDirty(registry);
                 Debug.Log("Successfully reset all object IDs. All save files may be invalid.");
             }
         }
