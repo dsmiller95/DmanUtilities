@@ -33,6 +33,21 @@ namespace Dman.SceneSaveSystem
             {
                 saveManager.DeleteSaveData(sceneToSave);
             }
+            /// <summary>
+            /// clear save data in the global scope
+            /// </summary>
+            public static void ClearGlobalSave()
+            {
+                WorldSaveManager.DeleteGlobalSaveData();
+            }
+
+            /// <summary>
+            /// delete all save data
+            /// </summary>
+            public static void ClearAllSaveData()
+            {
+                WorldSaveManager.DeleteSaveData();
+            }
 
             /// <summary>
             /// loop through all active scenes and save them all in order

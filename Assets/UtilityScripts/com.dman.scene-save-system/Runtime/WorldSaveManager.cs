@@ -20,6 +20,10 @@ namespace Dman.SceneSaveSystem
         {
             SerializationManager.DeleteAll(SaveContext.instance.saveName);
         }
+        public static void DeleteGlobalSaveData()
+        {
+            SerializationManager.DeleteChunks(SaveContext.instance.saveName, new GlobalSaveScopeIdentifier());
+        }
 
         public void DeleteSaveData(SceneReference scene)
         {
