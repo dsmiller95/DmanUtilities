@@ -117,10 +117,10 @@ namespace Dman.SceneSaveSystem
                 }
                 throw new System.Exception($"Saved file does not match type {typeof(T)}");
             }
-            catch
+            catch (System.Exception e)
             {
-                Debug.LogError($"Failed to load file at {path}");
-                throw;
+                Debug.LogException(e);
+                throw new SaveFormatException($"exception when loading an object of type {typeof(T).FullName} from file");
             }
             finally
             {
