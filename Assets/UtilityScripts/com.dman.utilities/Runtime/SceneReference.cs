@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 namespace Dman.Utilities
 {
     [Serializable]
-    public class SceneReference
+    public class SceneReference : IEquatable<SceneReference>
     {
         public static SceneReference Active => new SceneReference(SceneManager.GetActiveScene().path);
         public static List<SceneReference> Loaded => LoadedGenerator.ToList();
@@ -22,9 +22,10 @@ namespace Dman.Utilities
             }
         }
 
-        public string scenePath;
+        public string scenePath = "";
         public string Name => System.IO.Path.GetFileNameWithoutExtension(scenePath);
         public int BuildIndex => SceneUtility.GetBuildIndexByScenePath(scenePath);
+        public bool IsValid => !string.IsNullOrWhiteSpace(scenePath);
 
         public Scene ScenePointerIfLoaded => SceneManager.GetSceneByBuildIndex(BuildIndex);
 
@@ -62,7 +63,12 @@ namespace Dman.Utilities
             return scenePath.GetHashCode();
         }
 
+        public bool Equals(SceneReference other)
+        {
+            return other == this;
+        }
+
         public static bool operator ==(SceneReference a, SceneReference b) => a?.scenePath == b?.scenePath;
-        public static bool operator !=(SceneReference a, SceneReference b) => !(a.scenePath == b.scenePath);
+        public static bool operator !=(SceneReference a, SceneReference b) => !(a?.scenePath == b?.scenePath);
     }
 }

@@ -2,14 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Dman.Utilities.SerializableUnityObjects
 {
     [Serializable]
-    public class SerializableDictionary<TKey, TValue>: IDictionary<TKey, TValue>, ISerializationCallbackReceiver
+    public class SerializableDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISerializationCallbackReceiver
     {
         public Dictionary<TKey, TValue> backingDictionary;
 
@@ -30,10 +28,33 @@ namespace Dman.Utilities.SerializableUnityObjects
 
         public void OnAfterDeserialize()
         {
-            backingDictionary = keyValuePairs?
-                .Where(x => x != null)
-                .ToDictionary(x => x.key, x => x.value)
-                ?? new Dictionary<TKey, TValue>();
+            backingDictionary = new Dictionary<TKey, TValue>();
+            if (keyValuePairs == null) return;
+            foreach (var kvp in keyValuePairs)
+            {
+                if (kvp == null)
+                {
+                    backingDictionary[NewKeyValue()] = default(TValue);
+                    continue;
+                }
+                if (backingDictionary.ContainsKey(kvp.key))
+                {
+                    var newKey = NewKeyValue();
+                    backingDictionary[newKey] = kvp.value;
+                    continue;
+                }
+                backingDictionary[kvp.key] = kvp.value;
+            }
+        }
+
+        private TKey NewKeyValue()
+        {
+            if (typeof(TKey).IsValueType)
+            {
+                return default(TKey);
+            }
+            var constructor = typeof(TKey).GetConstructor(Type.EmptyTypes);
+            return (TKey)constructor.Invoke(new object[0]);
         }
 
         public void OnBeforeSerialize()
@@ -46,9 +67,10 @@ namespace Dman.Utilities.SerializableUnityObjects
         }
 
         #region interface reimplementation
-        public TValue this[TKey key] {
+        public TValue this[TKey key]
+        {
             get => ((IDictionary<TKey, TValue>)backingDictionary)[key];
-            set => ((IDictionary<TKey, TValue>)backingDictionary)[key] = value; 
+            set => ((IDictionary<TKey, TValue>)backingDictionary)[key] = value;
         }
 
         public ICollection<TKey> Keys => ((IDictionary<TKey, TValue>)backingDictionary).Keys;
