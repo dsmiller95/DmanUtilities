@@ -1,0 +1,14 @@
+{
+  "name": "com.dman.entities-utilities",
+  "version": "0.1.0",
+  "displayName": "Dman's Utilities for entities",
+  "description": "A bunch of utilities too small to go in their own package, specifically for unity's DOTS system",
+  "unity": "2020.1",
+  "dependencies": {
+    "com.unity.entities": "0.17.0-preview.42"
+  },
+  "author": {
+    "name": "Dan Miller",
+    "email": "dsmiller95@gmail.com"
+  }
+}
