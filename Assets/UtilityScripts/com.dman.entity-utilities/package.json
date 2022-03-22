@@ -1,5 +1,5 @@
 {
-  "name": "com.dman.entities-utilities",
+  "name": "com.dman.entity-utilities",
   "version": "0.1.0",
   "displayName": "Dman's Utilities for entities",
   "description": "A bunch of utilities too small to go in their own package, specifically for unity's DOTS system",

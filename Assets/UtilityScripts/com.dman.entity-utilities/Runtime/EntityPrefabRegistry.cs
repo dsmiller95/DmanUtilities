@@ -18,7 +18,7 @@ namespace Dman.EntityUtilities
             {
                 return entity;
             }
-            throw new System.Exception($"spawnable prefab {spawnablePrefab} not registered with the turtle spawn entities instantiator");
+            throw new System.Exception($"spawnable prefab {spawnablePrefab} not registered with the entity prefab registry");
         }
 
         private void Awake()
