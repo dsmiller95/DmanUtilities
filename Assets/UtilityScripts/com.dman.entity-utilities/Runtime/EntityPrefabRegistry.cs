@@ -7,6 +7,20 @@ namespace Dman.EntityUtilities
 {
     public class EntityPrefabRegistry: MonoBehaviour
     {
+
+        private static EntityPrefabRegistry _instance;
+        public static EntityPrefabRegistry Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = GameObject.FindObjectOfType<EntityPrefabRegistry>();
+                }
+                return _instance;
+            }
+        }
+
         public GameObject[] spawnableEntityPrefabs;
 
         private Dictionary<int, Entity> entitiesByGoInstanceId;
