@@ -21,6 +21,11 @@ namespace Dman.Utilities
             return default;
         }
 
+        public static Ray GetRay()
+        {
+            return Camera.main.ScreenPointToRay(Input.mousePosition);
+        }
+
         /// <summary>
         /// Raycasts from the current mouse position to a game object.
         ///     over the UI
@@ -41,7 +46,7 @@ namespace Dman.Utilities
                 Debug.LogWarning("No active camera");
                 return false;
             }
-            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            var ray = GetRay();
             if (Physics.Raycast(ray, out var innerHit, 100, mask))
             {
                 hit = innerHit;

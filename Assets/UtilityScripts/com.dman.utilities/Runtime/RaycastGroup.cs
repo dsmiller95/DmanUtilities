@@ -29,6 +29,14 @@ namespace Dman.Utilities
             }
         }
 
+        public Ray CurrentRay
+        {
+            get
+            {
+                return MouseOverHelpers.GetRay();
+            }
+        }
+
         private void CheckForRaycastHit()
         {
             if (MouseOverHelpers.RaycastToObject(layersToRaycastTo, out var singleHit, uiBlocksRay))
