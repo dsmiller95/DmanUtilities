@@ -20,6 +20,21 @@ namespace Dman.Utilities.SerializableUnityObjects
         {
             this.data = backing;
         }
+        public BinarySerialized(byte[] rawData)
+        {
+            this.allFileData = rawData;
+            this.OnAfterDeserialize();
+        }
+
+        public byte[] GetRawSerialized()
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                new BinaryFormatter().Serialize(stream, data);
+                return stream.ToArray();
+            }
+        }
+
         public void OnAfterDeserialize()
         {
             if (allFileData == null)
