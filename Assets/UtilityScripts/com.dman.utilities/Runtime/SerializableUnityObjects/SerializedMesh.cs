@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -12,6 +13,25 @@ namespace Dman.Utilities.SerializableUnityObjects
         SerializedSubmesh[] submeshDescriptors;
         int[] indexes;
         float[] uvs;
+        uint[] colors;
+
+        [StructLayout(LayoutKind.Explicit)]
+        private struct ColorAsUint
+        {
+            [FieldOffset(0)]
+            public uint uInt;
+            [FieldOffset(0)]
+            public Color32 color;
+
+            public static uint AsUint(Color32 color)
+            {
+                return new ColorAsUint { color = color }.uInt;
+            }
+            public static Color32 AsColor32(uint uInt)
+            {
+                return new ColorAsUint { uInt = uInt }.color;
+            }
+        }
 
         [Serializable]
         class SerializedSubmesh
@@ -50,6 +70,13 @@ namespace Dman.Utilities.SerializableUnityObjects
                 var uv = mesh.uv[i];
                 uvs[i * 2] = uv.x;
                 uvs[i * 2 + 1] = uv.y;
+            }
+
+            colors = new uint[mesh.vertexCount];
+            for (int i = 0; i < mesh.vertexCount; i++)
+            {
+                var color = mesh.colors32[i];
+                colors[i] = ColorAsUint.AsUint(color);
             }
         }
 
@@ -104,9 +131,15 @@ namespace Dman.Utilities.SerializableUnityObjects
                         uvs[i * 2 + 1]
                     );
             }
+            var hydratedColors = new Color32[vertexCount];
+            for (int i = 0; i < vertexCount; i++)
+            {
+                hydratedColors[i] = ColorAsUint.AsColor32(colors[i]);
+            }
 
             result.SetVertices(vertexHydrated);
             result.SetNormals(normalsHydrated);
+            result.SetColors(hydratedColors);
             result.uv = hydratedUvs;
             result.triangles = indexes;
             result.SetSubMeshes(subMeshHydrated);

@@ -17,7 +17,7 @@ namespace Dman.Utilities
         /// <param name="currentJobHandle"></param>
         /// <param name="cancel"></param>
         /// <returns>true if cancelled</returns>
-        public static async UniTask<bool> ToUniTaskImmediateCompleteOnCancel(this JobHandle currentJobHandle, CancellationToken cancel)
+        public static async UniTask<bool> ToUniTaskImmediateCompleteOnCancel(this JobHandle currentJobHandle, CancellationToken cancel, bool throwOnCancelled = false)
         {
             var cancelled = false;
             while (!currentJobHandle.IsCompleted && !cancel.IsCancellationRequested && !cancelled)
@@ -33,7 +33,12 @@ namespace Dman.Utilities
                 registration.Dispose();
             }
             currentJobHandle.Complete();
-            return cancelled || cancel.IsCancellationRequested;
+            var wasCancelled = cancelled || cancel.IsCancellationRequested;
+            if (throwOnCancelled && wasCancelled)
+            {
+                throw new OperationCanceledException();
+            }
+            return wasCancelled;
         }
     }
 }
