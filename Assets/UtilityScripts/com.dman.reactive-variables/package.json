@@ -1,6 +1,6 @@
 {
   "name": "com.dman.reactive-variables",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "displayName": "Reactive ",
   "description": "Implementation of reactive scriptable object variables",
   "unity": "2020.1",
