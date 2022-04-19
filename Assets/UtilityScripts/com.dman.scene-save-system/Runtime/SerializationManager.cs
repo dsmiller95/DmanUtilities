@@ -1,8 +1,11 @@
 ﻿using Dman.SceneSaveSystem.Objects;
 using Dman.SceneSaveSystem.Objects.Identifiers;
+using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace Dman.SceneSaveSystem
@@ -14,7 +17,31 @@ namespace Dman.SceneSaveSystem
 
         internal static bool Save(SaveScopeData saveScopeData, string saveName)
         {
-            return Save(saveScopeData.scopeIdentifier, saveName, saveScopeData);
+            try
+            {
+                return Save(saveScopeData.scopeIdentifier, saveName, saveScopeData);
+            }
+            catch (SerializationException e)
+            {
+                var saveScopeIterator = saveScopeData.GetIterator();
+                while (saveScopeIterator.MoveNext())
+                {
+                    var saveData = saveScopeIterator.Current;
+                    var tmpFormatter = SerializationManager.GetBinaryFormatter();
+
+                    try
+                    {
+                        tmpFormatter.Serialize(Stream.Null, saveData);
+                    }
+                    catch (SerializationException)
+                    {
+                        var currentSaveStack = saveScopeIterator.CurrentStack().Select(x => x.scopeIdentifier.UniqueSemiReadableName);
+                        Debug.LogError($"serializing error on type {saveData.savedSerializableObject.GetType()} inside scope: {saveData.uniqueSaveDataId}: {string.Join(", ", currentSaveStack)}");
+                    }
+                }
+
+                throw;
+            }
         }
         internal static bool Save<T>(ISaveScopeIdentifier saveScope, string saveName, T saveData)
         {

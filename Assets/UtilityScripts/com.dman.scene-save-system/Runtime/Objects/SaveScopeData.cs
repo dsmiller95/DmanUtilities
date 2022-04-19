@@ -1,4 +1,5 @@
 ﻿using Dman.SceneSaveSystem.Objects.Identifiers;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -85,5 +86,99 @@ namespace Dman.SceneSaveSystem.Objects
                 .Concat(other.childScopes)
                 .ToList();
         }
+
+        public SaveScopeTreeIterator GetIterator()
+        {
+            return new SaveScopeTreeIterator(this);
+        }
+
+        public class SaveScopeTreeIterator : IEnumerator<SaveData>
+        {
+            private Stack<SaveScopeNodeIterationState> currentStack;
+            private SaveScopeData topTree;
+
+            private class SaveScopeNodeIterationState
+            {
+                public SaveScopeData Node { get; private set; }
+                private int currentIndex;
+
+                public SaveScopeNodeIterationState(SaveScopeData root)
+                {
+                    this.Node = root;
+                    currentIndex = 0;
+                }
+
+                public bool HasSaveData()
+                {
+                    return currentIndex < Node.dataInScope.Count;
+                }
+
+                public SaveData GetNextSaveData()
+                {
+                    return Node.dataInScope[currentIndex++];
+                }
+
+                public bool HasChildren()
+                {
+                    return currentIndex < (Node.dataInScope.Count + Node.childScopes.Count);
+                }
+                public SaveScopeData GetNextChild()
+                {
+                    return Node.childScopes[(currentIndex++) - Node.dataInScope.Count];
+                }
+            }
+
+            public SaveData Current { get; private set; }
+
+            object IEnumerator.Current => Current;
+
+            public SaveScopeTreeIterator(SaveScopeData topTree)
+            {
+                this.topTree = topTree;
+                Reset();
+            }
+
+            public IEnumerable<SaveScopeData> CurrentStack()
+            {
+                return currentStack.Select(x => x.Node);
+            }
+
+            public bool MoveNext()
+            {
+                if(currentStack.Count <= 0)
+                {
+                    Current = null;
+                    return false;
+                }
+                var currentNode = currentStack.Peek();
+                if (currentNode.HasSaveData())
+                {
+                    Current = currentNode.GetNextSaveData();
+                    return true;
+                }
+                else if (currentNode.HasChildren())
+                {
+                    var nextChild = currentNode.GetNextChild();
+                    currentStack.Push(new SaveScopeNodeIterationState(nextChild));
+                }else
+                {
+                    currentStack.Pop();
+                }
+                return MoveNext();
+            }
+
+            public void Reset()
+            {
+                currentStack = new Stack<SaveScopeNodeIterationState>();
+                currentStack.Push(new SaveScopeNodeIterationState(topTree));
+            }
+
+            public void Dispose()
+            {
+                currentStack = null;
+            }
+        }
+
+
     }
 }
