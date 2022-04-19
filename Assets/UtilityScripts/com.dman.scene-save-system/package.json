@@ -1,6 +1,6 @@
 {
   "name": "com.dman.scene-save-system",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "displayName": "Scene save system",
   "description": "System to save data across the scene, as well as saving prefabs created directly under scene objects.",
   "unity": "2020.1",

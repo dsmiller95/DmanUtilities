@@ -1,11 +1,9 @@
 ﻿using Dman.SceneSaveSystem.Objects;
 using Dman.SceneSaveSystem.Objects.Identifiers;
-using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace Dman.SceneSaveSystem
