@@ -27,6 +27,25 @@ namespace Dman.Utilities
             }
         }
 
+        public static IDisposable DestroyOnDispose(this UnityEngine.Object destroyable, bool useImmediate = false)
+        {
+            if (destroyable == null) return null;
+            return new LambdaDispose(() =>
+            {
+                if (destroyable != null)
+                {
+                    if (useImmediate)
+                    {
+                        UnityEngine.Object.DestroyImmediate(destroyable);
+                    }
+                    else
+                    {
+                        UnityEngine.Object.Destroy(destroyable);
+                    }
+                }
+            });
+        }
+
         /// <summary>
         /// returns a disposable which will release <paramref name="temporaryTexture"/> when disposed
         /// </summary>
