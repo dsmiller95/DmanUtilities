@@ -7,6 +7,7 @@ namespace Dman.ReactiveVariables
     public abstract class GenericReferenceDrawer : PropertyDrawer
     {
         const int dataPathHeight = 18;
+        const int referenceDropdownHeight = 18;
         const int dropdownWidth = 100;
 
         // Here you must define the height of your property drawer. Called by Unity.
@@ -16,6 +17,8 @@ namespace Dman.ReactiveVariables
             ReferenceDataSource dataSource = DataSource(prop);
             if (dataSource == ReferenceDataSource.INSTANCER)
                 return base.GetPropertyHeight(prop, label) + dataPathHeight;
+            else if (dataSource == ReferenceDataSource.SINGLETON_VARIABLE)
+                return base.GetPropertyHeight(prop, label) + (prop.isExpanded ? referenceDropdownHeight : 0);
             else
                 return base.GetPropertyHeight(prop, label);
         }
@@ -23,35 +26,94 @@ namespace Dman.ReactiveVariables
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             ReferenceDataSource dataSource = DataSource(property);
-            if (dataSource != ReferenceDataSource.INSTANCER)
+            var topRowPosition = new Rect(position);
+            if (dataSource == ReferenceDataSource.INSTANCER)
             {
-                var topRowPosition = new Rect(position);
-
-                label = EditorGUI.BeginProperty(topRowPosition, label, property);
-
-                DrawObjectSelection(topRowPosition, property, label);
-            }
-            else
-            {
-                var topRowPosition = new Rect(position);
                 topRowPosition.yMax -= dataPathHeight;
 
                 label = EditorGUI.BeginProperty(topRowPosition, label, property);
-
                 DrawObjectSelection(topRowPosition, property, label);
 
                 var bottomRowPosition = new Rect(position);
                 bottomRowPosition.yMin = bottomRowPosition.yMax - dataPathHeight;
                 DrawPathSelection(bottomRowPosition, property);
+                EditorGUI.EndProperty();
             }
-            EditorGUI.EndProperty();
+            else if (dataSource == ReferenceDataSource.SINGLETON_VARIABLE)
+            {
+                if (property.isExpanded)
+                {
+                    topRowPosition.yMax -= referenceDropdownHeight;
+                }
+
+                var genericVariable = property.FindPropertyRelative("Variable");
+                var variableValue = genericVariable.objectReferenceValue;
+                // Draw foldout arrow
+                if (variableValue != null)
+                {
+                    property.isExpanded = EditorGUI.Foldout(topRowPosition, property.isExpanded, GUIContent.none);
+                }
+                else
+                {
+                    property.isExpanded = false;
+                }
+
+
+                label = EditorGUI.BeginProperty(topRowPosition, label, property);
+                DrawObjectSelection(topRowPosition, property, label);
+                EditorGUI.EndProperty();
+
+
+                if (property.isExpanded)
+                {
+                    var bottomRowPosition = new Rect(position);
+                    bottomRowPosition.yMin = bottomRowPosition.yMax - referenceDropdownHeight;
+                    DrawCurrentSingletonValue(bottomRowPosition, genericVariable);
+                }
+            }
+            else
+            {
+                label = EditorGUI.BeginProperty(topRowPosition, label, property);
+                DrawObjectSelection(topRowPosition, property, label);
+                EditorGUI.EndProperty();
+            }
         }
 
         protected abstract List<string> GetValidNamePaths(VariableInstantiator instantiator);
 
+
+        // Cached scriptable object editor
+        private Editor editor = null;
+
+        private void DrawCurrentSingletonValue(Rect position, SerializedProperty genericVariable)
+        {
+            var variableValue = genericVariable.objectReferenceValue;
+            if (!editor)
+                Editor.CreateCachedEditor(variableValue, null, ref editor);
+
+            var inspectorValue = editor.serializedObject.FindProperty("InspectableValue");
+
+            var label = new GUIContent("Current Value");
+            //var changed = EditorGUILayout.PropertyField(inspectorValue, label);
+
+            EditorGUI.indentLevel++;
+            position = EditorGUI.IndentedRect(position);
+            EditorGUI.indentLevel--;
+
+            EditorGUI.PropertyField(position,
+                inspectorValue,
+                label);
+            editor.serializedObject.ApplyModifiedProperties();
+        }
+
+
+        /// <summary>
+        /// draws a path selector for an instancer type
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="property"></param>
         private void DrawPathSelection(Rect position, SerializedProperty property)
         {
-
             SerializedProperty instancer = property.FindPropertyRelative("Instancer");
             var instancerObj = instancer.objectReferenceValue as VariableInstantiator;
             if (instancerObj == null)
@@ -81,7 +143,7 @@ namespace Dman.ReactiveVariables
         }
 
         /// <summary>
-        ///  draw the first row
+        ///  draw the first row: a dropdown to select the type of refernce this is, and a value field to set the primary property of the reference
         /// </summary>
         /// <param name="position"></param>
         /// <param name="property"></param>
