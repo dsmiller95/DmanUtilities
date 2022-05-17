@@ -1,4 +1,5 @@
-﻿using UniRx;
+﻿using System;
+using UniRx;
 using UnityEngine;
 
 namespace Dman.ReactiveVariables
@@ -7,8 +8,41 @@ namespace Dman.ReactiveVariables
     {
         [Multiline]
         public string DeveloperDescription = "";
+        [SerializeField]
+        private T InspectableValue;
         private BehaviorSubject<T> _value = new BehaviorSubject<T>(default);
         public BehaviorSubject<T> Value => _value;
+
+        private IDisposable subscribtion;
+        public void OnEnable()
+        {
+            SetValueFromInspectable();
+            subscribtion = Value.Subscribe(x => InspectableValue = x);
+        }
+
+        public void OnDisable()
+        {
+            subscribtion?.Dispose();
+            subscribtion = null;
+        }
+
+        public void OnValidate()
+        {
+            SetValueFromInspectable();
+        }
+
+        private void SetValueFromInspectable()
+        {
+            if (InspectableValue is UnityEngine.Object && (InspectableValue as UnityEngine.Object) == null)
+            {
+                // special case to handle UnityEngine.Object , which will not -actually- be null but will behave as nulls
+                SetValue(default);
+            }
+            else
+            {
+                SetValue(InspectableValue);
+            }
+        }
 
         public void SetValue(T value)
         {
