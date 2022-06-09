@@ -20,5 +20,7 @@ namespace Dman.ReactiveVariables
             SetValue(newValue);
             return newValue;
         }
+
+        public static implicit operator FloatReference(float value) => new FloatReference(value);
     }
 }

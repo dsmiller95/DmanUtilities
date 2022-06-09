@@ -13,5 +13,7 @@ namespace Dman.ReactiveVariables
         {
             throw new NotImplementedException();
         }
+
+        public static implicit operator IntReference(int value) => new IntReference(value);
     }
 }

@@ -13,5 +13,7 @@ namespace Dman.ReactiveVariables
         {
             return Instancer.GetBooleanValue(NamePath);
         }
+
+        public static implicit operator BooleanReference(bool value) => new BooleanReference(value);
     }
 }
