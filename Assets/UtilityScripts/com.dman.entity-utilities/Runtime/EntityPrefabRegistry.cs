@@ -59,10 +59,14 @@ namespace Dman.EntityUtilities
 
         private void OnDestroy()
         {
-            var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-            foreach (var entity in entitiesByGoInstanceId.Values)
+            var world = World.DefaultGameObjectInjectionWorld;
+            if(world != null)
             {
-                entityManager.DestroyEntity(entity);
+                var entityManager = world.EntityManager;
+                foreach (var entity in entitiesByGoInstanceId.Values)
+                {
+                    entityManager.DestroyEntity(entity);
+                }
             }
             entitiesByGoInstanceId = null;
             prefabAssetStore.Dispose();
