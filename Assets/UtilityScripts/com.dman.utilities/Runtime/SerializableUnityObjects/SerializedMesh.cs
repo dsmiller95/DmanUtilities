@@ -53,8 +53,19 @@ namespace Dman.Utilities.SerializableUnityObjects
 
         public SerializedMesh(Mesh mesh)
         {
+            UnityEngine.Profiling.Profiler.BeginSample("serializing mesh");
+
+            UnityEngine.Profiling.Profiler.BeginSample("vertexes");
             vertexes = ToFloatArray(mesh.vertices);
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.BeginSample("normals");
             normals = ToFloatArray(mesh.normals);
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.BeginSample("uvs");
+            uvs = ToFloatArray(mesh.uv);
+            UnityEngine.Profiling.Profiler.EndSample();
 
             submeshDescriptors = new SerializedSubmesh[mesh.subMeshCount];
             for (int i = 0; i < mesh.subMeshCount; i++)
@@ -64,20 +75,17 @@ namespace Dman.Utilities.SerializableUnityObjects
             }
             indexes = mesh.triangles;
 
-            uvs = new float[mesh.vertexCount * 2];
-            for (int i = 0; i < mesh.vertexCount; i++)
-            {
-                var uv = mesh.uv[i];
-                uvs[i * 2] = uv.x;
-                uvs[i * 2 + 1] = uv.y;
-            }
 
+            UnityEngine.Profiling.Profiler.BeginSample("colors");
             colors = new uint[mesh.vertexCount];
+            var sourceColors = mesh.colors32;
             for (int i = 0; i < mesh.vertexCount; i++)
             {
-                var color = mesh.colors32[i];
-                colors[i] = ColorAsUint.AsUint(color);
+                colors[i] = ColorAsUint.AsUint(sourceColors[i]);
             }
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.EndSample();
         }
 
         private static float[] ToFloatArray(Vector3[] source)
@@ -89,6 +97,17 @@ namespace Dman.Utilities.SerializableUnityObjects
                 result[i * 3] = sourceVector.x;
                 result[i * 3 + 1] = sourceVector.y;
                 result[i * 3 + 2] = sourceVector.z;
+            }
+            return result;
+        }
+        private static float[] ToFloatArray(Vector2[] source)
+        {
+            var result = new float[source.Length * 2];
+            for (int i = 0; i < source.Length; i++)
+            {
+                var sourceVector = source[i];
+                result[i * 2] = sourceVector.x;
+                result[i * 2 + 1] = sourceVector.y;
             }
             return result;
         }

@@ -62,7 +62,11 @@ namespace Dman.SceneSaveSystem
             {
                 throw new System.InvalidOperationException("Cannot save a scene which is not loaded");
             }
+            UnityEngine.Profiling.Profiler.BeginSample("Saving " + sceneToSave.Name);
+            UnityEngine.Profiling.Profiler.BeginSample("generate serializables");
             var saveScopes = GetTopLevelSaveScopeData(sceneToSave);
+            UnityEngine.Profiling.Profiler.EndSample();
+
             var globalScope = saveScopes.FirstOrDefault(x => x.scopeIdentifier is GlobalSaveScopeIdentifier);
             var sceneScope = saveScopes.FirstOrDefault(x => x.scopeIdentifier is SceneSaveScopeIdentifier);
 
@@ -94,10 +98,20 @@ namespace Dman.SceneSaveSystem
             oldGlobalScope.InsertSaveData(lastSavedSceneSaveData);
 
 
+            UnityEngine.Profiling.Profiler.BeginSample("presave hook");
             SaveSystemHooks.TriggerPreSave(sceneToSave);
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.BeginSample("saving to file");
             SerializationManager.Save(sceneScope, SaveContext.instance.saveName);
             SerializationManager.Save(oldGlobalScope, SaveContext.instance.saveName);
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.BeginSample("postsave hook");
             SaveSystemHooks.TriggerPostSave(sceneToSave);
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.EndSample();
         }
 
         /// <summary>
@@ -132,7 +146,9 @@ namespace Dman.SceneSaveSystem
             }
 
             var globalScope = new GlobalSaveScopeIdentifier();
+            UnityEngine.Profiling.Profiler.BeginSample("loading: deserializing");
             var globalData = SerializationManager.Load<SaveScopeData>(globalScope, SaveContext.instance.saveName);
+            UnityEngine.Profiling.Profiler.EndSample();
 
             if (sceneToLoad == null)
             {
@@ -148,7 +164,9 @@ namespace Dman.SceneSaveSystem
             }
 
             Scene loadingScene;
+            UnityEngine.Profiling.Profiler.BeginSample("loading: preload hook");
             SaveSystemHooks.TriggerPreLoad(sceneToLoad);
+            UnityEngine.Profiling.Profiler.EndSample();
             if (sceneToLoad.BuildIndex >= 0)
             {
                 loadingScene = SceneManager.LoadScene(sceneToLoad.BuildIndex, new LoadSceneParameters(loadMode));
@@ -160,9 +178,18 @@ namespace Dman.SceneSaveSystem
             }
             yield return new WaitUntil(() => loadingScene.isLoaded);
 
+            UnityEngine.Profiling.Profiler.BeginSample("loading: midload hook");
             SaveSystemHooks.TriggerMidLoad(sceneToLoad);
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.BeginSample("loading: applying new data");
             LoadIntoSingleScene(sceneToLoad, saveablePrefabRegistry, globalData);
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.BeginSample("loading: postload hook");
             SaveSystemHooks.TriggerPostLoad(sceneToLoad);
+            UnityEngine.Profiling.Profiler.EndSample();
+
             yield return null;
             if (loadMode == LoadSceneMode.Single)
             {
