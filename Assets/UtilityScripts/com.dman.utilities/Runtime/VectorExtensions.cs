@@ -8,5 +8,10 @@ namespace Dman.Utilities
         {
             return new Vector2(source.x / scale.x, source.y / scale.y);
         }
+
+        public static int DistanceManhattan(this Vector2Int a, Vector2Int b)
+        {
+            return Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
+        }
     }
 }
