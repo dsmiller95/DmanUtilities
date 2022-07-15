@@ -1,17 +1,29 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace Dman.Utilities
 {
     public static class MouseOverHelpers
     {
+        private static Func<Vector2> MousePosGetter;
+        public static void ConfigureMouseHelper(Func<Vector2> mousePositionPixelCoordGetter = null)
+        {
+            if (mousePositionPixelCoordGetter == null)
+            {
+                mousePositionPixelCoordGetter = () => new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+            }
+
+            MousePosGetter = mousePositionPixelCoordGetter;
+        }
+
         /// <summary>
         /// return current mouse position. useful for 2D games.
         /// </summary>
         /// <returns></returns>
         public static Vector2 GetMousePos2D()
         {
-            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            var ray = Camera.main.ScreenPointToRay(GetMousePos());
             var plane = new Plane(new Vector3(0, 0, 1), 0);
 
             if (plane.Raycast(ray, out var enter))
@@ -23,7 +35,17 @@ namespace Dman.Utilities
 
         public static Ray GetRay()
         {
-            return Camera.main.ScreenPointToRay(Input.mousePosition);
+            return Camera.main.ScreenPointToRay(GetMousePos());
+        }
+
+        private static Vector2 GetMousePos()
+        {
+            if (MousePosGetter == null)
+            {
+                Debug.LogError("The mouse position helper must know where the mouse is");
+                throw new NullReferenceException("Mouse over helper has not been configured");
+            }
+            return MousePosGetter();
         }
 
         /// <summary>
@@ -61,7 +83,7 @@ namespace Dman.Utilities
             {
                 return null;
             }
-            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            var ray = Camera.main.ScreenPointToRay(GetMousePos());
             return Physics.RaycastAll(ray, 100, mask);
         }
     }
