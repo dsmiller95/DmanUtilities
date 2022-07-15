@@ -11,6 +11,9 @@ namespace Dman.Utilities
     /// </summary>
     public static class JobHandleExtensions
     {
+        public static bool TrackPendingJobs = false;
+        public static JobHandle PendingAsyncJobs { get; private set; } = default(JobHandle);
+
         /// <summary>
         /// Await on a job handle to complete, without forcing completion unless cancelled
         /// </summary>
@@ -19,6 +22,11 @@ namespace Dman.Utilities
         /// <returns>true if cancelled</returns>
         public static async UniTask<bool> ToUniTaskImmediateCompleteOnCancel(this JobHandle currentJobHandle, CancellationToken cancel, bool throwOnCancelled = false)
         {
+            if (TrackPendingJobs)
+            {
+                PendingAsyncJobs = JobHandle.CombineDependencies(currentJobHandle, PendingAsyncJobs);
+            }
+
             var cancelled = false;
             while (!currentJobHandle.IsCompleted && !cancel.IsCancellationRequested && !cancelled)
             {
