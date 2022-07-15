@@ -5,8 +5,8 @@
   "description": "System to save data across the scene, as well as saving prefabs created directly under scene objects.",
   "unity": "2020.1",
   "dependencies": {
-    "com.dman.object-sets": "0.1.3",
-    "com.dman.utilities": "0.4.0"
+    "com.dman.object-sets": "0.1.5",
+    "com.dman.utilities": "0.4.5"
   },
   "author": {
     "name": "Dan Miller",
