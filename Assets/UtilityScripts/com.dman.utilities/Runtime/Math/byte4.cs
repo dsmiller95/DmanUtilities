@@ -19,6 +19,11 @@
                 w << 24);
         }
 
+        public byte x => this[0];
+        public byte y => this[1];
+        public byte z => this[2];
+        public byte w => this[3];
+
         public byte this[int i]
         {
             get => (byte)((internalValue >> (i * 8)) & BYTE_MASK);
@@ -30,5 +35,11 @@
         }
         public static explicit operator uint(byte4 b) => b.internalValue;
         public static explicit operator byte4(uint i) => new byte4(i);
+
+
+        public override string ToString()
+        {
+            return $"byte4({x}, {y}, {z}, {w})";
+        }
     }
 }
