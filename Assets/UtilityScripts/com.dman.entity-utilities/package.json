@@ -1,6 +1,6 @@
 {
   "name": "com.dman.entity-utilities",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "displayName": "Dman's Utilities for entities",
   "description": "A bunch of utilities too small to go in their own package, specifically for unity's DOTS system",
   "unity": "2020.1",
