@@ -2,7 +2,7 @@
     "name": "UtilitiesEditor",
     "rootNamespace": "Dman.Utilities",
     "references": [
-        "Utilities"
+        "GUID:59e83f50c45b3c04faa860925fdf2547"
     ],
     "includePlatforms": [
         "Editor"
