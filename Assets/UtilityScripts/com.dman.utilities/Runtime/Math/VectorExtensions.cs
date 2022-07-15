@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Dman.Utilities
+namespace Dman.Utilities.Math
 {
     public static class VectorExtensions
     {

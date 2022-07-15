@@ -1,12 +1,9 @@
 {
-    "name": "com.dman.scene-save-system.editmode-tests",
-    "rootNamespace": "Dman.SceneSaveSystem.EditmodeTests",
+    "name": "com.dman.utilities.tests",
+    "rootNamespace": "Dman.Utilities.tests",
     "references": [
         "GUID:27619889b8ba8c24980f49ee34dbb44a",
         "GUID:0acc523941302664db1f4e527237feb3",
-        "GUID:4a1d88944df5d5647af4143f0eae8620",
-        "GUID:f9180f5aba88dc74f84e911ea6b84751",
-        "GUID:c89e1c2639f65d549a075aac1877b9a1",
         "GUID:59e83f50c45b3c04faa860925fdf2547"
     ],
     "includePlatforms": [
