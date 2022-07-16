@@ -1,53 +1,154 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
+using static UnityEngine.Mesh;
 
 namespace Dman.Utilities.SerializableUnityObjects
 {
     [Serializable]
     public class SerializedMesh
     {
-        float[] vertexes;
-        float[] normals;
-        SerializedSubmesh[] submeshDescriptors;
-        int[] indexes;
-        float[] uvs;
-        uint[] colors;
-
-        [StructLayout(LayoutKind.Explicit)]
-        private struct ColorAsUint
+        [Serializable]
+        private class SingleMeshDataSerialized
         {
-            [FieldOffset(0)]
-            public uint uInt;
-            [FieldOffset(0)]
-            public Color32 color;
+            SerializedSubmesh[] subMeshes;
 
-            public static uint AsUint(Color32 color)
+            SerializedVertexAttributeDescriptor[] vertexAttributes;
+            byte[] vertexes;
+            int vertexCount;
+
+            IndexFormat indexFormat;
+            UInt16[] indexes;
+
+
+            public SingleMeshDataSerialized(MeshData source, VertexAttributeDescriptor[] vertexAttributes)
             {
-                return new ColorAsUint { color = color }.uInt;
+                subMeshes = new SerializedSubmesh[source.subMeshCount];
+                for (int i = 0; i < subMeshes.Length; i++)
+                {
+                    subMeshes[i] = new SerializedSubmesh(source.GetSubMesh(i));
+                }
+
+                if (source.vertexBufferCount != 1)
+                {
+                    Debug.LogWarning("warning: mesh data has more than one vertex buffer count. this is unsupported when serializing");
+                }
+
+                this.vertexCount = source.vertexCount;
+                vertexes = source.GetVertexData<byte>(0).ToArray();
+                this.vertexAttributes = new SerializedVertexAttributeDescriptor[vertexAttributes.Length];
+                for (int i = 0; i < this.vertexAttributes.Length; i++)
+                {
+                    this.vertexAttributes[i] = new SerializedVertexAttributeDescriptor(vertexAttributes[i]);
+                }
+
+                this.indexFormat = source.indexFormat;
+                if (this.indexFormat == IndexFormat.UInt16)
+                {
+                    var tmpData = source.GetIndexData<UInt16>();
+                    indexes = tmpData.ToArray();
+                }
+                else if (this.indexFormat == IndexFormat.UInt32)
+                {
+                    var tmpData = source.GetIndexData<UInt32>().Reinterpret<UInt16>(sizeof(UInt32));
+                    indexes = tmpData.ToArray();
+                }
+                else
+                {
+                    throw new Exception($"unrecognized index format: {this.indexFormat}");
+                }
+
             }
-            public static Color32 AsColor32(uint uInt)
+
+            public void WriteMeshData(MeshData target)
             {
-                return new ColorAsUint { uInt = uInt }.color;
+                {
+                    var newVertexAttributes = new VertexAttributeDescriptor[this.vertexAttributes.Length];
+                    for (int i = 0; i < newVertexAttributes.Length; i++)
+                    {
+                        newVertexAttributes[i] = vertexAttributes[i].ToDescriptor();
+                    }
+                    target.SetVertexBufferParams(this.vertexCount, newVertexAttributes);
+                    using var tmpVertextes = new NativeArray<byte>(vertexes, Allocator.TempJob);
+                    var targetVertexes = target.GetVertexData<byte>(0);
+                    targetVertexes.CopyFrom(tmpVertextes);
+                }
+
+                {
+                    var trueLength = indexFormat == IndexFormat.UInt16 ? indexes.Length : indexes.Length / 2;
+                    target.SetIndexBufferParams(trueLength, indexFormat);
+                    using var tmpIndexes = new NativeArray<UInt16>(indexes, Allocator.TempJob);
+                    if (indexFormat == IndexFormat.UInt16)
+                    {
+                        var targetIndexes = target.GetIndexData<UInt16>();
+                        targetIndexes.CopyFrom(tmpIndexes);
+                    }
+                    else
+                    {
+                        var targetIndexes = target.GetIndexData<UInt32>();
+                        targetIndexes.CopyFrom(tmpIndexes.Reinterpret<UInt32>(sizeof(UInt16)));
+                    }
+                }
+
+                {
+                    target.subMeshCount = subMeshes.Length;
+                    int i;
+                    for (i = 0; i < subMeshes.Length - 1; i++)
+                    {
+                        target.SetSubMesh(i, subMeshes[i].ToDescriptor(), MeshUpdateFlags.DontNotifyMeshUsers | MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontResetBoneBounds | MeshUpdateFlags.DontValidateIndices);
+                    }
+                    target.SetSubMesh(i, subMeshes[i].ToDescriptor(), MeshUpdateFlags.Default);
+                }
             }
         }
 
+        SingleMeshDataSerialized serializedMesh;
+
         [Serializable]
-        class SerializedSubmesh
+        struct SerializedSubmesh
         {
             public int indexStart;
             public int indexCount;
+            public int baseVertex;
+            public MeshTopology topology;
 
             public SerializedSubmesh(SubMeshDescriptor subMesh)
             {
                 indexStart = subMesh.indexStart;
                 indexCount = subMesh.indexCount;
+                baseVertex = subMesh.baseVertex;
+                topology = subMesh.topology;
             }
 
             public SubMeshDescriptor ToDescriptor()
             {
-                return new SubMeshDescriptor(indexStart, indexCount);
+                var newSub = new SubMeshDescriptor(indexStart, indexCount, topology);
+                newSub.baseVertex = baseVertex;
+                return newSub;
+            }
+        }
+
+        [Serializable]
+        struct SerializedVertexAttributeDescriptor
+        {
+            public VertexAttribute attribute;
+            public VertexAttributeFormat format;
+            public int dimension;
+            public int stream;
+
+            public SerializedVertexAttributeDescriptor(VertexAttributeDescriptor descriptor)
+            {
+                attribute = descriptor.attribute;
+                format = descriptor.format;
+                dimension = descriptor.dimension;
+                stream = descriptor.stream;
+            }
+
+            public VertexAttributeDescriptor ToDescriptor()
+            {
+                return new VertexAttributeDescriptor(attribute, format, dimension, stream);
             }
         }
 
@@ -55,115 +156,27 @@ namespace Dman.Utilities.SerializableUnityObjects
         {
             UnityEngine.Profiling.Profiler.BeginSample("serializing mesh");
 
-            UnityEngine.Profiling.Profiler.BeginSample("vertexes");
-            vertexes = ToFloatArray(mesh.vertices);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            UnityEngine.Profiling.Profiler.BeginSample("normals");
-            normals = ToFloatArray(mesh.normals);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            UnityEngine.Profiling.Profiler.BeginSample("uvs");
-            uvs = ToFloatArray(mesh.uv);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            submeshDescriptors = new SerializedSubmesh[mesh.subMeshCount];
-            for (int i = 0; i < mesh.subMeshCount; i++)
+            var meshData = Mesh.AcquireReadOnlyMeshData(mesh);
+            if (meshData.Length != 1)
             {
-                var subMesh = mesh.GetSubMesh(i);
-                submeshDescriptors[i] = new SerializedSubmesh(subMesh);
+                Debug.Log("serializing multiple meshes is not supported");
             }
-            indexes = mesh.triangles;
-
-
-            UnityEngine.Profiling.Profiler.BeginSample("colors");
-            colors = new uint[mesh.vertexCount];
-            var sourceColors = mesh.colors32;
-            for (int i = 0; i < mesh.vertexCount; i++)
-            {
-                colors[i] = ColorAsUint.AsUint(sourceColors[i]);
-            }
-            UnityEngine.Profiling.Profiler.EndSample();
+            serializedMesh = new SingleMeshDataSerialized(meshData[0], mesh.GetVertexAttributes());
+            meshData.Dispose();
 
             UnityEngine.Profiling.Profiler.EndSample();
-        }
-
-        private static float[] ToFloatArray(Vector3[] source)
-        {
-            var result = new float[source.Length * 3];
-            for (int i = 0; i < source.Length; i++)
-            {
-                var sourceVector = source[i];
-                result[i * 3] = sourceVector.x;
-                result[i * 3 + 1] = sourceVector.y;
-                result[i * 3 + 2] = sourceVector.z;
-            }
-            return result;
-        }
-        private static float[] ToFloatArray(Vector2[] source)
-        {
-            var result = new float[source.Length * 2];
-            for (int i = 0; i < source.Length; i++)
-            {
-                var sourceVector = source[i];
-                result[i * 2] = sourceVector.x;
-                result[i * 2 + 1] = sourceVector.y;
-            }
-            return result;
-        }
-
-        private static Vector3[] FromFloatArray(float[] source)
-        {
-            var result = new Vector3[source.Length / 3];
-            for (int i = 0; i < result.Length; i++)
-            {
-                result[i] = new Vector3(
-                        source[i * 3],
-                        source[i * 3 + 1],
-                        source[i * 3 + 2]
-                    );
-            }
-            return result;
         }
 
         public Mesh GetDeserialized()
         {
+            var meshBuilder = Mesh.AllocateWritableMeshData(1);
+            var meshTarget = meshBuilder[0];
+            serializedMesh.WriteMeshData(meshTarget);
+
+
             var result = new Mesh();
 
-            var vertexCount = vertexes.Length / 3;
-            var vertexHydrated = FromFloatArray(vertexes);
-            var normalsHydrated = FromFloatArray(normals);
-
-
-            var subMeshHydrated = new SubMeshDescriptor[submeshDescriptors.Length];
-            for (int i = 0; i < submeshDescriptors.Length; i++)
-            {
-                subMeshHydrated[i] = submeshDescriptors[i].ToDescriptor();
-            }
-
-
-            var hydratedUvs = new Vector2[vertexCount];
-            for (int i = 0; i < vertexCount; i++)
-            {
-                hydratedUvs[i] = new Vector2(
-                        uvs[i * 2],
-                        uvs[i * 2 + 1]
-                    );
-            }
-            var hydratedColors = new Color32[vertexCount];
-            for (int i = 0; i < vertexCount; i++)
-            {
-                hydratedColors[i] = ColorAsUint.AsColor32(colors[i]);
-            }
-
-            result.SetVertices(vertexHydrated);
-            result.SetNormals(normalsHydrated);
-            result.SetColors(hydratedColors);
-            result.uv = hydratedUvs;
-            result.triangles = indexes;
-            result.SetSubMeshes(subMeshHydrated);
-
-            result.RecalculateBounds();
+            Mesh.ApplyAndDisposeWritableMeshData(meshBuilder, result, MeshUpdateFlags.Default);
 
             return result;
         }
