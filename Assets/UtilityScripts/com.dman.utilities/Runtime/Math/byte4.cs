@@ -1,5 +1,8 @@
-﻿namespace Dman.Utilities.Math
+﻿using System;
+
+namespace Dman.Utilities.Math
 {
+    [Serializable]
     public struct byte4
     {
         uint internalValue;
