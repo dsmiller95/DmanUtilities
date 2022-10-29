@@ -1,14 +1,6 @@
-using Dman.Utilities.Math;
 using NUnit.Framework;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEditor;
-using UnityEditor.SceneManagement;
-using UnityEngine;
-using UnityEngine.TestTools;
 
-namespace Dman.SceneSaveSystem.EditmodeTests
+namespace Dman.Utilities.Math
 {
     public class Byte4Tests
     {
