@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Dman.Utilities
 {
@@ -17,6 +18,21 @@ namespace Dman.Utilities
             public FormatParameters()
             {
                 parameters = new Dictionary<string, string>();
+            }
+
+            public void Patch(FormatParameters patch)
+            {
+                foreach (var patchedKey in patch.parameters)
+                {
+                    if(patchedKey.Value == null)
+                    {
+                        parameters.Remove(patchedKey.Key);
+                    }
+                    else
+                    {
+                        parameters[patchedKey.Key] = patchedKey.Value;
+                    }
+                }
             }
 
             public void SetParameter(string parameter, string value)
@@ -42,6 +58,13 @@ namespace Dman.Utilities
                 sb.Replace('{' + key + '}', parameters.GetParameter(key));
             }
             return sb.ToString();
+        }
+
+
+        private static readonly Regex formatMatcher = new Regex(@"\{.+?\}", RegexOptions.Compiled);
+        public static bool IsFormattable(string formatString)
+        {
+            return formatMatcher.IsMatch(formatString);
         }
     }
 }

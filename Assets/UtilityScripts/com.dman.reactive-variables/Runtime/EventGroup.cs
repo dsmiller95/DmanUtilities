@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Dman.ReactiveVariables
 {
@@ -7,6 +8,8 @@ namespace Dman.ReactiveVariables
     public class EventGroup : ScriptableObject
     {
         public event Action OnEvent;
+        [SerializeField] UnityEvent Triggered;
+        public bool LogEvents = true;
 #if UNITY_EDITOR
         [Multiline]
         public string DeveloperDescription = "";
@@ -15,8 +18,10 @@ namespace Dman.ReactiveVariables
 
         public void TriggerEvent()
         {
-            Debug.Log($"${name} triggered");
+            if(LogEvents)
+                Debug.Log($"${name} triggered {Time.frameCount}");
             OnEvent?.Invoke();
+            Triggered?.Invoke();
         }
     }
 }

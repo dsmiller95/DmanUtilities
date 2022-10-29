@@ -6,27 +6,28 @@ namespace Dman.ReactiveVariables
 {
     public abstract class GenericVariable<T> : ScriptableObject
     {
+        [SerializeField]
         [Multiline]
-        public string DeveloperDescription = "";
+        private string DeveloperDescription = "";
         [SerializeField]
         private T InspectableValue;
         private BehaviorSubject<T> _value = new BehaviorSubject<T>(default);
         public BehaviorSubject<T> Value => _value;
 
         private IDisposable subscribtion;
-        public void OnEnable()
+        void OnEnable()
         {
             SetValueFromInspectable();
             subscribtion = Value.Subscribe(x => InspectableValue = x);
         }
 
-        public void OnDisable()
+        void OnDisable()
         {
             subscribtion?.Dispose();
             subscribtion = null;
         }
 
-        public void OnValidate()
+        void OnValidate()
         {
             SetValueFromInspectable();
         }
