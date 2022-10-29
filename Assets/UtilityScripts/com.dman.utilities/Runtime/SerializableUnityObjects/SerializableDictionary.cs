@@ -9,11 +9,17 @@ namespace Dman.Utilities.SerializableUnityObjects
     [Serializable]
     public class SerializableDictionary<TKey, TValue> : IDictionary<TKey, TValue>, ISerializationCallbackReceiver
     {
+        public TKey defaultKey = default(TKey);
         public Dictionary<TKey, TValue> backingDictionary;
 
         public SerializableDictionary()
         {
             backingDictionary = new Dictionary<TKey, TValue>();
+        }
+        public SerializableDictionary(Dictionary<TKey, TValue> backer)
+        {
+            backingDictionary = backer;
+            defaultKey = backer.Keys.FirstOrDefault();
         }
 
         [SerializeField]
@@ -49,12 +55,13 @@ namespace Dman.Utilities.SerializableUnityObjects
 
         private TKey NewKeyValue()
         {
-            if (typeof(TKey).IsValueType)
-            {
-                return default(TKey);
-            }
-            var constructor = typeof(TKey).GetConstructor(Type.EmptyTypes);
-            return (TKey)constructor.Invoke(new object[0]);
+            return defaultKey;
+            //if (typeof(TKey).IsValueType)
+            //{
+            //    return default(TKey);
+            //}
+            //var constructor = typeof(TKey).GetConstructor(Type.EmptyTypes);
+            //return (TKey)constructor?.Invoke(new object[0]) ?? default(TKey);
         }
 
         public void OnBeforeSerialize()

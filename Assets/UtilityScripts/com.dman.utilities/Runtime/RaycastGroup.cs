@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Dman.Utilities
 {
@@ -9,6 +10,7 @@ namespace Dman.Utilities
         public bool uiBlocksRay = true;
         
         private RaycastHit? _currentHit;
+        public bool hitUI { get; private set; }
         private int lastFrameRaycasted;
 
 
@@ -39,7 +41,13 @@ namespace Dman.Utilities
 
         private void CheckForRaycastHit()
         {
-            if (MouseOverHelpers.RaycastToObject(layersToRaycastTo, out var singleHit, uiBlocksRay))
+            hitUI = EventSystem.current.IsPointerOverGameObject();
+            if (uiBlocksRay && hitUI)
+            {
+                _currentHit = null;
+                return;
+            }
+            if (MouseOverHelpers.RaycastToObject(layersToRaycastTo, out var singleHit, false))
             {
                 _currentHit = singleHit;
             }

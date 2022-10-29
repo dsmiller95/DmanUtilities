@@ -8,7 +8,7 @@ namespace Dman.Utilities.Math
         uint internalValue;
 
         private const uint BYTE_MASK = 0x000000FF;
-
+        public static readonly byte4 ZERO = new byte4((uint)0);
         public byte4(uint value)
         {
             this.internalValue = value;

@@ -17,7 +17,6 @@ namespace Dman.Utilities
                     Editor.CreateCachedEditor(settings, null, ref editor);
                     editor.OnInspectorGUI();
                 }
-
             }
         }
 

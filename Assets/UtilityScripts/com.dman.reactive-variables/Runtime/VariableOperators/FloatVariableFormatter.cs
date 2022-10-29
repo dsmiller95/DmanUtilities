@@ -26,6 +26,10 @@ namespace Dman.ReactiveVariables.VariableOperators
 
         public void FormatFloat(float value)
         {
+            if(reference.DataSource == ReferenceDataSource.CONSTANT)
+            {
+                reference.ConstantValue = value;
+            }
             var newText = string.Format(formatString, value);
             TextUpdate?.Invoke(newText);
         }
