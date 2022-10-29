@@ -11,7 +11,9 @@ namespace Dman.ReactiveVariables.VariableOperators
         public UnityEvent<int> OnChanged;
         private void Awake()
         {
-            reference.ValueChanges.TakeUntilDisable(this)
+            reference.ValueChanges
+                .DistinctUntilChanged()
+                .TakeUntilDisable(this)
                 .Subscribe(pair =>
                 {
                     OnChanged.Invoke(pair);
