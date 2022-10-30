@@ -28,5 +28,28 @@ namespace Dman.Utilities
 
             return source.Token;
         }
+
+        /// <summary>
+        /// Wait on any one task to complete or be cancelled, and then cancel all other tasks
+        /// </summary>
+        /// <param name="cancel"></param>
+        /// <param name="taskGenerators"></param>
+        /// <returns></returns>
+        public static async UniTask<int> WhenAnyCancelAll(CancellationToken cancel, params Func<CancellationToken, UniTask>[] taskGenerators)
+        {
+            using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel))
+            {
+                var tmpToken = cts.Token;
+                try
+                {
+                    var completeIndex = await UniTask.WhenAny(taskGenerators.Select(x => x(tmpToken)));
+                    return completeIndex;
+                }
+                finally
+                {
+                    cts.Cancel();
+                }
+            }
+        }
     }
 }
