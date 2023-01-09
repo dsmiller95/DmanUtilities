@@ -11,9 +11,8 @@ namespace Dman.ReactiveVariables.VariableOperators
         [Serializable]
         class AssignPair
         {
-            public BooleanVariable target;
-            public BooleanReference source;
-
+            public BooleanVariable target = null;
+            public BooleanReference source = null;
             public void Assign()
             {
                 target.SetValue(source.CurrentValue);

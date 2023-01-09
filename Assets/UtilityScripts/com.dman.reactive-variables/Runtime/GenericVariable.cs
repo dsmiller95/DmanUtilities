@@ -8,7 +8,9 @@ namespace Dman.ReactiveVariables
     {
         [SerializeField]
         [Multiline]
+#pragma warning disable 0414 // unused value
         private string DeveloperDescription = "";
+#pragma warning restore 0414
         [SerializeField]
         private T InspectableValue;
         private BehaviorSubject<T> _value = new BehaviorSubject<T>(default);

@@ -6,13 +6,13 @@ namespace Dman.ReactiveVariables.VariableOperators
     public class BatchAssignerFloat : MonoBehaviour
     {
         [SerializeField]
-        AssignPair[] assignPairs;
+        AssignPair[] assignPairs = null;
 
         [Serializable]
         class AssignPair
         {
-            public FloatVariable target;
-            public FloatReference source;
+            public FloatVariable target = null;
+            public FloatReference source = null;
 
             public void Assign()
             {

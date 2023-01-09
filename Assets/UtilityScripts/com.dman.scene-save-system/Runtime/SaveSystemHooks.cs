@@ -35,6 +35,7 @@ namespace Dman.SceneSaveSystem
         public event SaveLifecycleHook PreLoad;
         internal static void TriggerPreLoad(SceneReference targetScene)
         {
+            Instance.IsLoadProcessActive = true;
             Instance.PreLoad?.Invoke(targetScene);
         }
 
@@ -52,6 +53,9 @@ namespace Dman.SceneSaveSystem
         internal static void TriggerPostLoad(SceneReference targetScene)
         {
             Instance.PostLoad?.Invoke(targetScene);
+            Instance.IsLoadProcessActive = false;
         }
+
+        public bool IsLoadProcessActive { get; private set; }
     }
 }

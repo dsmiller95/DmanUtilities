@@ -19,7 +19,7 @@ namespace Dman.SceneSaveSystem
             {
                 return Save(saveScopeData.scopeIdentifier, saveName, saveScopeData);
             }
-            catch (SerializationException e)
+            catch (SerializationException)
             {
                 var saveScopeIterator = saveScopeData.GetIterator();
                 while (saveScopeIterator.MoveNext())

@@ -1,9 +1,6 @@
 ﻿using System;
-using Unity.Jobs;
-using Cysharp.Threading.Tasks;
-using System.Threading;
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Dman.Utilities
 {
@@ -25,9 +22,20 @@ namespace Dman.Utilities
             {
                 onDispose();
             }
+
+            public static implicit operator LambdaDispose(UnityEngine.Object destroyable)
+            {
+                return DestroyOnDisposeInternal(destroyable, useImmediate: false);
+            }
         }
 
+
         public static IDisposable DestroyOnDispose(this UnityEngine.Object destroyable, bool useImmediate = false)
+        {
+            return DestroyOnDisposeInternal(destroyable, useImmediate);
+        }
+
+        private static LambdaDispose DestroyOnDisposeInternal(UnityEngine.Object destroyable, bool useImmediate = false)
         {
             if (destroyable == null) return null;
             return new LambdaDispose(() =>
@@ -72,7 +80,7 @@ namespace Dman.Utilities
             {
                 foreach (var destroyable in destroyables)
                 {
-                    if(destroyable != null)
+                    if (destroyable != null)
                     {
                         UnityEngine.Object.Destroy(destroyable);
                     }

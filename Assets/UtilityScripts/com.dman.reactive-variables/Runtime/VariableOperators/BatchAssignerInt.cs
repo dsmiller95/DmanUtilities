@@ -11,8 +11,8 @@ namespace Dman.ReactiveVariables.VariableOperators
         [Serializable]
         class AssignPair
         {
-            public IntVariable target;
-            public IntReference source;
+            public IntVariable target = null;
+            public IntReference source = null;
 
             public void Assign()
             {
