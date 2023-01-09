@@ -10,10 +10,7 @@ namespace Dman.Utilities
         {
             var topRowPosition = new Rect(position);
 
-            label = EditorGUI.BeginProperty(topRowPosition, label, property);
-
             DrawSceneSelection(topRowPosition, property, label);
-            EditorGUI.EndProperty();
         }
 
         /// <summary>
@@ -28,17 +25,13 @@ namespace Dman.Utilities
             var scenePath = scenePathProperty.stringValue;
             var oldScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
 
-            property.serializedObject.Update();
-
-            EditorGUI.BeginChangeCheck();
             var newScene = EditorGUI.ObjectField(position, property.displayName, oldScene, typeof(SceneAsset), false) as SceneAsset;
-
-            if (EditorGUI.EndChangeCheck())
+            if (GUI.changed)
             {
                 var newPath = AssetDatabase.GetAssetPath(newScene);
                 scenePathProperty.stringValue = newPath;
+                property.serializedObject.ApplyModifiedProperties();
             }
-            property.serializedObject.ApplyModifiedProperties();
         }
     }
 }
