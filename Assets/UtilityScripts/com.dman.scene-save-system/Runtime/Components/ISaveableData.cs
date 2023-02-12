@@ -6,7 +6,8 @@
     public interface ISaveableData
     {
         /// <summary>
-        /// A unique indentifier inside the prefab, or inside the scene, to identify this data
+        /// A unique indentifier inside the prefab, or inside the scene, to identify this data.<br/>
+        /// This should be invariant, and should never depend on any state saved and/or loaded by the component
         /// </summary>
         public string UniqueSaveIdentifier { get; }
         /// <summary>
