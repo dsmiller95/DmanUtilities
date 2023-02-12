@@ -13,27 +13,11 @@ namespace Dman.Utilities.SerializableUnityObjects
     public class SerializableSystemType
     {
         [SerializeField]
-        private string m_Name;
-
-        public string Name
-        {
-            get { return m_Name; }
-        }
-
-        [SerializeField]
         private string m_AssemblyQualifiedName;
 
         public string AssemblyQualifiedName
         {
             get { return m_AssemblyQualifiedName; }
-        }
-
-        [SerializeField]
-        private string m_AssemblyName;
-
-        public string AssemblyName
-        {
-            get { return m_AssemblyName; }
         }
 
         private System.Type m_SystemType;
@@ -57,9 +41,7 @@ namespace Dman.Utilities.SerializableUnityObjects
         public SerializableSystemType(System.Type _SystemType)
         {
             m_SystemType = _SystemType;
-            m_Name = _SystemType.Name;
             m_AssemblyQualifiedName = _SystemType.AssemblyQualifiedName;
-            m_AssemblyName = _SystemType.Assembly.FullName;
         }
 
         public override int GetHashCode()
