@@ -1,8 +1,6 @@
 using NUnit.Framework;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using static Dman.Utilities.RectangularIterator;
+using static Dman.Utilities.RowColIterator;
 
 namespace Dman.Utilities
 {
@@ -22,9 +20,10 @@ namespace Dman.Utilities
             return output;
         }
 
-        public void TestIterator(int[,] orderArray, IEnumerable<Vector2Int> generatedIterator)
+        public void TestIterator(int[,] orderArray, IRectangularIterator iterator)
         {
-            var actualIteration = generatedIterator.ToList();
+            var mapSize = new Vector2Int(orderArray.GetLength(1), orderArray.GetLength(0));
+            var actualIteration = iterator.Iterate(mapSize);
 
             var actualMapOrder = new int[orderArray.GetLength(0), orderArray.GetLength(1)];
             int index = 0;
@@ -33,7 +32,7 @@ namespace Dman.Utilities
                 Assert.IsTrue(
                     coordinate.y < actualMapOrder.GetLength(0) && coordinate.y >= 0 &&
                     coordinate.x < actualMapOrder.GetLength(1) && coordinate.x >= 0,
-                    $"Coordinate out of range of expected map size. coordinate: \n {coordinate}\nMap size: \n{new Vector2Int(actualMapOrder.GetLength(1), actualMapOrder.GetLength(0))}"
+                    $"Coordinate out of range of expected map size. coordinate: \n {coordinate}\nMap size: \n{mapSize}"
                     );
                 actualMapOrder[coordinate.y, coordinate.x] = index;
                 index++;
@@ -59,7 +58,7 @@ namespace Dman.Utilities
                     { 4, 5,  6,  7 },
                     { 8, 9, 10, 11 },
                 };
-            var actualIteration = RectangularIterator.IterateRowColumn(new Vector2Int(4, 3), RowColOrder.LeftRightBottomUp);
+            var actualIteration = new RowColIterator(RowColOrder.LeftRightBottomUp);
             TestIterator(expectedOrder, actualIteration);
         }
 
@@ -73,7 +72,7 @@ namespace Dman.Utilities
                     { 10, 7, 4, 1 },
                     { 9 , 6, 3, 0 },
                 };
-            var actualIteration = RectangularIterator.IterateRowColumn(new Vector2Int(4, 3), RowColOrder.TopDownRightLeft);
+            var actualIteration = new RowColIterator(RowColOrder.TopDownRightLeft);
             TestIterator(expectedOrder, actualIteration);
         }
 
@@ -89,7 +88,7 @@ namespace Dman.Utilities
                     {  7,  6,  5,  4 },
                     {  3,  2,  1,  0 },
                 };
-            var actualIteration = RectangularIterator.IterateRowColumn(new Vector2Int(4, 5), RowColOrder.RightLeftTopDown);
+            var actualIteration = new RowColIterator(RowColOrder.RightLeftTopDown);
             TestIterator(expectedOrder, actualIteration);
         }
     }

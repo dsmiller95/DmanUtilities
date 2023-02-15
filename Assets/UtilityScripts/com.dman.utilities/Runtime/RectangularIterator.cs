@@ -1,22 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Dman.Utilities
 {
-    public static class RectangularIterator
+    public interface IRectangularIterator
     {
+        public IEnumerable<Vector2Int> Iterate(Vector2Int size);
+    }
+
+    public class RowColIterator : IRectangularIterator
+    {
+        public RowColOrder ordering { get; }
+        public RowColIterator(RowColOrder order)
+        {
+            this.ordering = order;
+        }
+
         public enum RowColOrder
         {
             LeftRightBottomUp = 0b111,
-            LeftRightTopDown =  0b011,
+            LeftRightTopDown = 0b011,
             RightLeftBottomUp = 0b101,
-            RightLeftTopDown =  0b001,
+            RightLeftTopDown = 0b001,
 
             BottomUpLeftRight = 0b110,
-            TopDownLeftRight =  0b010,
+            TopDownLeftRight = 0b010,
             BottomUpRightLeft = 0b100,
-            TopDownRightLeft =  0b000,
+            TopDownRightLeft = 0b000,
         }
 
         /// <summary>
@@ -25,12 +35,11 @@ namespace Dman.Utilities
         /// <param name="size">The size of the iteration rectangle</param>
         /// <param name="ordering">the iteration order</param>
         /// <returns>An iterator over all values in <paramref name="size"/></returns>
-        public static IEnumerable<Vector2Int> IterateRowColumn(Vector2Int size, RowColOrder ordering)
+        public IEnumerable<Vector2Int> Iterate(Vector2Int size)
         {
-            var downUp     = ((int)ordering & 0b100) != 0;
-            var leftRight  = ((int)ordering & 0b010) != 0;
+            var downUp = ((int)ordering & 0b100) != 0;
+            var leftRight = ((int)ordering & 0b010) != 0;
             var widthFirst = ((int)ordering & 0b001) != 0;
-
 
             Vector2Int widthOffset = leftRight ? Vector2Int.right : Vector2Int.left;
             Vector2Int heightOffset = downUp ? Vector2Int.up : Vector2Int.down;
