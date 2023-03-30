@@ -28,6 +28,7 @@ namespace Dman.Logging
 
             Debug.Log($"LogManager: Log file created. " +
                 $"Version [{Application.version}], " +
+                $"Build [{Application.buildGUID}], " +
                 $"isEditor [{Application.isEditor}], " +
                 $"platform [{Application.platform}]");
         }
