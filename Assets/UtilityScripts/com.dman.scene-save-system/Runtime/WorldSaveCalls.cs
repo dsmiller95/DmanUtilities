@@ -56,7 +56,10 @@ namespace Dman.SceneSaveSystem
             {
                 foreach (var scene in SceneReference.Loaded)
                 {
-                    saveManager.Save(scene);
+                    if (scene.IsLoaded)
+                    {
+                        saveManager.Save(scene);
+                    }
                 }
             }
 
