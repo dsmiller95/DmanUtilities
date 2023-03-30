@@ -1,0 +1,13 @@
+{
+  "name": "com.dman.logging",
+  "version": "0.1.4",
+  "displayName": "A code-first logging package",
+  "description": "Meant to be extensible and configurable. Planned support for structured and category-filtered logging.",
+  "unity": "2020.1",
+  "dependencies": {
+  },
+  "author": {
+    "name": "Dan Miller",
+    "email": "dsmiller95@gmail.com"
+  }
+}
