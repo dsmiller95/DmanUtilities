@@ -13,14 +13,23 @@ namespace Dman.Logging
     {
         public string LogFolder = "logs";
 
+        [Tooltip("Truncate stack traces to this length in log files. Only exceptions retain stack traces.")]
         public int ExceptionStackTraceTruncateCount = 1000;
+
+        [Tooltip("Used in log file name and text")]
+        public string TimeFormat = "yyyy-MM-dd HH.mm.ss.fff";
 
         private StreamWriter logWriter;
 
         private void Awake()
         {
-            logWriter = OpenNewLogFile(LogFolder);
+            logWriter = OpenNewLogFile();
             Application.logMessageReceived += LogMessageReceived;
+
+            Debug.Log($"LogManager: Log file created. " +
+                $"Version [{Application.version}], " +
+                $"isEditor [{Application.isEditor}], " +
+                $"platform [{Application.platform}]");
         }
 
         private void OnDestroy()
@@ -31,10 +40,10 @@ namespace Dman.Logging
             logWriter?.Dispose();
         }
 
-        private static StreamWriter OpenNewLogFile(string relativeLogFolder)
+        private StreamWriter OpenNewLogFile()
         {
             var logFileName = GetLogFileName();
-            var logFolder = Path.Combine(Application.persistentDataPath, relativeLogFolder);
+            var logFolder = Path.Combine(Application.persistentDataPath, LogFolder);
             if (!Directory.Exists(logFolder))
             {
                 Directory.CreateDirectory(logFolder);
@@ -44,24 +53,29 @@ namespace Dman.Logging
             return logWriter;
         }
 
-        private static string GetLogFileName()
+        private string GetLogFileName()
         {
-            var currentTime = DateTime.UtcNow;
+            var currentTime = DateTime.UtcNow.ToString(TimeFormat);
             var uniqueID = AnalyticsSessionInfo.sessionId;
 
-            return $"log_{currentTime}_{uniqueID}.txt";
+            var editorCode = Application.isEditor ? "EDIT" : "PLAY";
+
+            return $"log_{editorCode}_{currentTime}_{uniqueID:X16}.log";
         }
 
 
         private void LogMessageReceived(string condition, string stackTrace, LogType type)
         {
             var timestamp = DateTime.UtcNow;
-            logWriter.Write($"{timestamp.ToString("yyyy-MM-dd HH:mm:ss.fff")} | {LogCode(type)} | {condition}");
+            logWriter.Write($"{LogCode(type)}|{timestamp.ToString(TimeFormat)}|{condition}");
 
             if (type == LogType.Exception)
             {
                 var truncatedStack = stackTrace.Substring(0, Math.Min(stackTrace.Length, ExceptionStackTraceTruncateCount));
-                logWriter.Write($" | {truncatedStack}");
+                truncatedStack = ("\n" + truncatedStack)
+                    .TrimEnd('\n')
+                    .Replace("\n", "\nSTAK|");
+                logWriter.Write(truncatedStack);
             }
             logWriter.WriteLine();
         }
