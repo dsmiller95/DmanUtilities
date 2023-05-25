@@ -39,6 +39,7 @@ namespace Dman.SceneSaveSystem
         {
             this.StartCoroutine(this.SwapScenesCoroutine(oldScene, nextScene));
         }
+        // ReSharper disable Unity.PerformanceAnalysis
         private IEnumerator SwapScenesCoroutine(SceneReference oldScene, SceneReference nextScene)
         {
             var saveManager = GameObject.FindObjectOfType<WorldSaveManager>();
@@ -131,6 +132,7 @@ namespace Dman.SceneSaveSystem
             StartCoroutine(LoadCoroutine(null));
         }
 
+        // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
         /// Load the scene at the specified path. if null, then load the scene last saved
         /// </summary>

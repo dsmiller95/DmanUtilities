@@ -21,6 +21,26 @@ namespace Dman.Utilities.SerializableUnityObjects
             backingDictionary = backer;
             defaultKey = backer.Keys.FirstOrDefault();
         }
+        
+        public static SerializableDictionary<TKey, TValue> FromDictionaryMapped<TKeyIn>(
+            Dictionary<TKeyIn, TValue> input, 
+            Func<TKeyIn, TKey> keyMapper)
+        {
+            return FromDictionaryMapped(input, keyMapper, x => x);
+        }
+        
+        public static SerializableDictionary<TKey, TValue> FromDictionaryMapped<TKeyIn, TValueIn>(
+            Dictionary<TKeyIn, TValueIn> input, 
+            Func<TKeyIn, TKey> keyMapper, 
+            Func<TValueIn, TValue> valueMapper)
+        {
+            var output = new SerializableDictionary<TKey, TValue>();
+            foreach (var kvp in input)
+            {
+                output[keyMapper(kvp.Key)] = valueMapper(kvp.Value);
+            }
+            return output;
+        }
 
         [SerializeField]
         private List<InternalKeyPair> keyValuePairs;

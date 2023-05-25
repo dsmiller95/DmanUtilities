@@ -13,14 +13,18 @@ namespace Dman.Utilities
         public class LambdaDispose : IDisposable
         {
             private Action onDispose;
+            private bool disposed;
             public LambdaDispose(Action onDispose)
             {
                 this.onDispose = onDispose;
+                disposed = false;
             }
 
             public void Dispose()
             {
+                if (disposed) return;
                 onDispose();
+                disposed = true;
             }
 
             public static implicit operator LambdaDispose(UnityEngine.Object destroyable)
@@ -28,7 +32,15 @@ namespace Dman.Utilities
                 return DestroyOnDisposeInternal(destroyable, useImmediate: false);
             }
         }
-
+        
+        public static IDisposable EnableThenDisable(this UnityEngine.GameObject enableable)
+        {
+            enableable.SetActive(true);
+            return new LambdaDispose(() =>
+            {
+                enableable.SetActive(false);
+            });
+        }
 
         public static IDisposable DestroyOnDispose(this UnityEngine.Object destroyable, bool useImmediate = false)
         {
