@@ -3,7 +3,6 @@ using System.Text.RegularExpressions;
 using UniRx;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UI;
 
 namespace Dman.ReactiveVariables.VariableOperators
 {

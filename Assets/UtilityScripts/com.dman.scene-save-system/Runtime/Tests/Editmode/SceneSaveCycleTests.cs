@@ -1004,6 +1004,6 @@ namespace Dman.SceneSaveSystem.EditmodeTests
         }
 
 
-        // TODO: write test to assert load ordering is respected, inside and out of prefabs
+        // eventually write test to assert load ordering is respected, inside and out of prefabs
     }
 }

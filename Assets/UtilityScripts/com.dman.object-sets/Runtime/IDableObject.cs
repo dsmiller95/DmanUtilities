@@ -9,11 +9,15 @@ namespace Dman.ObjectSets
         int referenceID;
         public IDableSavedReference(IDableObject target)
         {
-            referenceID = target.myId;
+            referenceID = target == null ? -1 : target.myId;
         }
 
         public T GetObject<T>() where T : IDableObject
         {
+            if (referenceID == -1)
+            {
+                return null;
+            }
             var registry = RegistryRegistry.GetObjectRegistry<T>();
             if (registry == null)
             {

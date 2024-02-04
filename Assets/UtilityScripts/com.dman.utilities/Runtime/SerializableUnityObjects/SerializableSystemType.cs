@@ -8,6 +8,7 @@ namespace Dman.Utilities.SerializableUnityObjects
     //
     // Written by Bryan Keiren (http://www.bryankeiren.com)
     // lifted from https://forum.unity.com/threads/serializable-system-type-get-it-while-its-hot.187557/
+    // modified by Dan Miller
 
     [System.Serializable]
     public class SerializableSystemType
@@ -35,7 +36,7 @@ namespace Dman.Utilities.SerializableUnityObjects
 
         private void GetSystemType()
         {
-            m_SystemType = System.Type.GetType(m_AssemblyQualifiedName);
+            m_SystemType = string.IsNullOrEmpty(m_AssemblyQualifiedName) ? null : System.Type.GetType(m_AssemblyQualifiedName);
         }
 
         public SerializableSystemType(System.Type _SystemType)
@@ -46,7 +47,7 @@ namespace Dman.Utilities.SerializableUnityObjects
 
         public override int GetHashCode()
         {
-            return SystemType.GetHashCode();
+            return m_AssemblyQualifiedName.GetHashCode();
         }
 
         public override bool Equals(System.Object obj)
@@ -61,8 +62,20 @@ namespace Dman.Utilities.SerializableUnityObjects
 
         public bool Equals(SerializableSystemType _Object)
         {
+            if((object)_Object == null)
+            {
+                return false;
+            }
+            if(m_AssemblyQualifiedName == null && _Object.m_AssemblyQualifiedName == null)
+            {
+                return true;
+            }
+            if(m_AssemblyQualifiedName == null || _Object.m_AssemblyQualifiedName == null)
+            {
+                return false;
+            }
             //return m_AssemblyQualifiedName.Equals(_Object.m_AssemblyQualifiedName);
-            return _Object.SystemType.Equals(SystemType);
+            return _Object.m_AssemblyQualifiedName.Equals(m_AssemblyQualifiedName);
         }
 
         public static bool operator ==(SerializableSystemType a, SerializableSystemType b)

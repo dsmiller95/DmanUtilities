@@ -1,5 +1,4 @@
-﻿using Dman.Utilities.SerializableUnityObjects;
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace Dman.SceneSaveSystem.SharedSaveables
