@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0] - 2024-05-08
+
+### Removed
+
+- math extensions. use com.dman.math instead.
+
+
 ## [0.3.2] - 2021-02-24
 
 ### Added

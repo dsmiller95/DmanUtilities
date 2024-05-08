@@ -1,9 +1,4 @@
-﻿using Dman.SceneSaveSystem.Objects.Identifiers;
-using System;
-using System.Linq;
-using UnityEngine;
-
-namespace Dman.SceneSaveSystem.Objects
+﻿namespace Dman.SceneSaveSystem.Objects
 {
     internal struct LoadIterationContext
     {

@@ -1,6 +1,5 @@
 ﻿using Dman.Utilities;
 using System;
-using UnityEngine.SceneManagement;
 
 namespace Dman.SceneSaveSystem.Objects.Identifiers
 {

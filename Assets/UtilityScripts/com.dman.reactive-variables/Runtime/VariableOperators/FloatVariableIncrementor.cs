@@ -1,7 +1,4 @@
-﻿using UniRx;
-using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.UI;
+﻿using UnityEngine;
 
 namespace Dman.ReactiveVariables.VariableOperators
 {

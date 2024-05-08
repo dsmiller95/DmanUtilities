@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 
 namespace Dman.ObjectSets
 {
@@ -34,6 +35,20 @@ namespace Dman.ObjectSets
         {
             if (Instance == null)
             {
+                var loadedFromGameObjectQuery = GameObject.FindObjectOfType<UniqueObjectRegistryWithAccess<T>>();
+                var loadedFromAssets          = TryLoadRegistryFromAssets<T>();
+                if (loadedFromAssets != null && loadedFromGameObjectQuery != null)
+                {
+                    throw new System.Exception("Found multiple registries for type " + typeof(T).Name);
+                }
+                if (loadedFromAssets != null)
+                {
+                    return loadedFromAssets;
+                }
+                if (loadedFromGameObjectQuery != null)
+                {
+                    return loadedFromGameObjectQuery;
+                }
                 throw new System.Exception("the registry registry is not initialized!!");
             }
             foreach (var registry in Instance.registries)
@@ -43,6 +58,23 @@ namespace Dman.ObjectSets
                     return typedRegistry;
                 }
             }
+            return null;
+        }
+
+        private static UniqueObjectRegistryWithAccess<T> TryLoadRegistryFromAssets<T>() where T : IDableObject
+        {
+#if UNITY_EDITOR
+            var possibleRegistryAsset = AssetDatabase.FindAssets($"t:{nameof(UniqueObjectRegistryWithAccess<T>)}");
+            foreach (var possibleAsset in possibleRegistryAsset)
+            {
+                var assetPath = AssetDatabase.GUIDToAssetPath(possibleAsset);
+                var loaded    = AssetDatabase.LoadAssetAtPath<UniqueObjectRegistryWithAccess<T>>(assetPath);
+                if (loaded != null)
+                {
+                    return loaded;
+                }
+            }
+#endif
             return null;
         }
     }
