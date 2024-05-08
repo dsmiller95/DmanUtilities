@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Dman.Utilities.Math
+namespace Dman.Math
 {
     [Serializable]
     public struct byte4

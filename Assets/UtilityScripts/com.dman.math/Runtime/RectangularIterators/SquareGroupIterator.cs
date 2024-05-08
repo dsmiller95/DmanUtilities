@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine;
 
-namespace Dman.Utilities
+namespace Dman.Math.RectangularIterators
 {
     public class SquareGroupIterator : IRectangularGroupIterator
     {

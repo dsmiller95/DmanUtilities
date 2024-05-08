@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Dman.Utilities
+namespace Dman.Math.RectangularIterators
 {
     public class SquareSpiralIterator : IRectangularIterator
     {

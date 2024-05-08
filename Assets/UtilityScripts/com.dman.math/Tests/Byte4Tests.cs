@@ -1,3 +1,4 @@
+using Dman.Math;
 using NUnit.Framework;
 
 namespace Dman.Utilities.Math

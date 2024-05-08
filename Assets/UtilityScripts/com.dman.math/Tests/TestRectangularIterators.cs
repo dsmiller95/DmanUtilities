@@ -1,6 +1,7 @@
+using Dman.Math.RectangularIterators;
 using NUnit.Framework;
 using UnityEngine;
-using static Dman.Utilities.RowColIterator;
+using static Dman.Math.RectangularIterators.RowColIterator;
 
 namespace Dman.Utilities
 {
