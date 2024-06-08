@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1] - 2024-06-08
+
+### Added
+
+- AsyncFnOnceCell . cs
+
+
 ## [0.6.0] - 2024-05-08
 
 ### Removed
