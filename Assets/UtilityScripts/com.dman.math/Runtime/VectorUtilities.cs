@@ -35,25 +35,6 @@ namespace Dman.Math
             return IterateAllIn(Vector3Int.zero, max);
         }
 
-        public static int MaxAxis(this Vector3Int vect)
-        {
-            return Mathf.Max(vect.x, vect.y, vect.z);
-        }
-
-        public static Vector3Int PickMostSignificant(this Vector3Int vect)
-        {
-            var abs = vect.AbsComponents();
-            var max = abs.MaxAxis();
-            if (max == abs.x)
-            {
-                return new Vector3Int((int)Mathf.Sign(vect.x), 0, 0);
-            }
-            if (max == abs.y)
-            {
-                return new Vector3Int(0, (int)Mathf.Sign(vect.y), 0);
-            }
-            return new Vector3Int(0, 0, (int)Mathf.Sign(vect.z));
-        }
         
         public static Vector3Int[] AdjacentDirections = new[]
         {
@@ -65,7 +46,7 @@ namespace Dman.Math
             new Vector3Int(0, 0, -1),
         };
         
-        public static IEnumerable<Vector3Int> Neighbors(this Vector3Int position)
+        public static IEnumerable<Vector3Int> Neighbors(Vector3Int position)
         {
             foreach (var direction in AdjacentDirections)
             {

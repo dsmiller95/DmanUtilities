@@ -16,20 +16,17 @@ namespace Dman.Math
         
         public static Vector3Int MinComponents(this Vector3Int a, Vector3Int b)
         {
-            return new Vector3Int(
-                Mathf.Min(a.x, b.x),
-                Mathf.Min(a.y, b.y),
-                Mathf.Min(a.z, b.z)
-            );
+            return Vector3Int.Min(a, b);
         }
         public static Vector3Int MaxComponents(this Vector3Int a, Vector3Int b)
         {
-            return new Vector3Int(
-                Mathf.Max(a.x, b.x),
-                Mathf.Max(a.y, b.y),
-                Mathf.Max(a.z, b.z)
-            );
+            return Vector3Int.Max(a, b);
         }
+        public static int MaxAxis(this Vector3Int vect)
+        {
+            return Mathf.Max(vect.x, vect.y, vect.z);
+        }
+
     
         public static Vector3Int AbsComponents(this Vector3Int a)
         {
@@ -45,5 +42,19 @@ namespace Dman.Math
             return (vector.x != 0 ? 1 : 0) + (vector.y != 0 ? 1 : 0) + (vector.z != 0 ? 1 : 0);
         }
 
+        public static Vector3Int MaskLargest(this Vector3Int vect)
+        {
+            var abs = vect.AbsComponents();
+            var max = abs.MaxAxis();
+            if (max == abs.x)
+            {
+                return new Vector3Int((int)Mathf.Sign(vect.x), 0, 0);
+            }
+            if (max == abs.y)
+            {
+                return new Vector3Int(0, (int)Mathf.Sign(vect.y), 0);
+            }
+            return new Vector3Int(0, 0, (int)Mathf.Sign(vect.z));
+        }
     }
 }
