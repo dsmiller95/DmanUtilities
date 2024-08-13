@@ -4,7 +4,9 @@ namespace Dman.Utilities.Logger
 {
     public static class Log
     {
+#if UNITY_2021_3_OR_NEWER
         [HideInCallstack]
+#endif
         public static void Warning(
             string message,
             Object context = null,
@@ -16,7 +18,9 @@ namespace Dman.Utilities.Logger
             Debug.LogWarning(log, context);
         }
         
+#if UNITY_2021_3_OR_NEWER
         [HideInCallstack]
+#endif
         public static void Error(
             string message,
             Object context = null,
@@ -27,7 +31,9 @@ namespace Dman.Utilities.Logger
             Debug.LogError(log, context);
         }
 
+#if UNITY_2021_3_OR_NEWER
         [HideInCallstack]
+#endif
         public static void Info(
             string message,
             Object context = null,

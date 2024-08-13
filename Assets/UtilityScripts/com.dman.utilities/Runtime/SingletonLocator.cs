@@ -65,13 +65,16 @@ namespace Dman.Utilities
             var validTypes = SingletonCollector.AllSingletonTypes
                 .Where(x => typeof(TSingletonType).IsAssignableFrom(x))
                 .ToList();
-            TargetSingletonType = validTypes.Count switch
+            var count = validTypes.Count;
+            if (count > 1)
             {
-                > 1 => throw new Exception(
-                    $"Multiple Singleton types found for {typeof(TSingletonType).Name}: {string.Join(", ", validTypes.Select(x => x.Name))}"),
-                <= 0 => throw new Exception($"No Singleton types found for {typeof(TSingletonType).Name}"),
-                _ => validTypes.Single()
-            };
+                throw new Exception($"Multiple Singleton types found for {typeof(TSingletonType).Name}: {string.Join(", ", validTypes.Select(x => x.Name))}");
+            }
+            if (count <= 0)
+            {
+                throw new Exception($"No Singleton types found for {typeof(TSingletonType).Name}");
+            }
+            TargetSingletonType = validTypes.Single();
         }
     }
 
