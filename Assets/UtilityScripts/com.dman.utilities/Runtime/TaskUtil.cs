@@ -1,5 +1,4 @@
 ﻿using Cysharp.Threading.Tasks;
-using MyUtilities;
 using System;
 using System.Threading;
 using UnityEngine;
@@ -45,6 +44,28 @@ namespace Dman.Utilities
                 {
                     var completeIndex = await UniTask.WhenAny(taskGenerators.Select(x => x(tmpToken)));
                     return completeIndex;
+                }
+                finally
+                {
+                    cts.Cancel();
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Wait on any one task to complete or be cancelled, and then cancel all other tasks
+        /// </summary>
+        /// <param name="cancel"></param>
+        /// <param name="taskGenerators"></param>
+        /// <returns></returns>
+        public static async UniTask<(int winArgumentIndex, T result)> WhenAnyCancelAll<T>(CancellationToken cancel, params Func<CancellationToken, UniTask<T>>[] taskGenerators)
+        {
+            using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel))
+            {
+                var tmpToken = cts.Token;
+                try
+                {
+                    return await UniTask.WhenAny(taskGenerators.Select(x => x(tmpToken)));
                 }
                 finally
                 {
