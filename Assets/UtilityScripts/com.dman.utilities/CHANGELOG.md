@@ -1,5 +1,19 @@
 # Changelog
 
+
+## [0.7.0] - 2024-08-13
+
+### Added
+
+- new SingletonLocator, a generic way to find MonoBehavior singletons based on a static generic interface.
+- StringDiffUtils provide line-based diffing for strings
+- A new WhenAnyCancelAll<T> to allow returning data from WhenAnyCancelAll
+- SetGlobalScale to set the global scale of a game object
+- 
+### Changed
+
+- Logger -> Log , a more full-featured logger which captures information directly from the call site, with optional context
+
 ## [0.6.1] - 2024-06-08
 
 ### Added
