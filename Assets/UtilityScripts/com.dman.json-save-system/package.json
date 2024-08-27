@@ -1,0 +1,14 @@
+{
+  "name": "com.dman.json-save-system",
+  "version": "0.1.0",
+  "displayName": "Json Save System",
+  "description": "A save system which aims to be simple to use, and supports both default unity json serialization and Newtonsoft Json serialization",
+  "unity": "2020.1",
+  "dependencies": {
+    "com.dman.utilities": "0.7.0"
+  },
+  "author": {
+    "name": "Dan Miller",
+    "email": "dsmiller95@gmail.com"
+  }
+}

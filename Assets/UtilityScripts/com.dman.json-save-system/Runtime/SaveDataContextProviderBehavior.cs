@@ -1,0 +1,137 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using Dman.Utilities;
+using Dman.Utilities.Logger;
+using UnityEngine;
+using Object = UnityEngine.Object;
+
+namespace SaveSystem
+{
+    [UnitySingleton]
+    [RequireComponent(typeof(EarlyAwakeHook))]
+    public class SaveDataContextProviderBehavior : MonoBehaviour, 
+        ISaveDataBehavior,
+        ISaveDataPersistence,
+        IPersistSaveData,
+        IAwakeEarly
+    {
+        [Tooltip("The root folder path is appended to the persistent data path to create the save file path")]
+        [SerializeField] private string rootFolderPath = "SaveContexts";
+
+        [Tooltip("these are loaded on awake, and persisted on destroy")]
+        [SerializeField] private string[] contextsToManage;
+
+        /// <summary>
+        /// used to skip all lifecycle events if we spawned in while another instance was already alive
+        /// </summary>
+        private bool _isDestroyingDueToDuplicateSingleton = false;
+        private SaveDataContextProvider _provider;
+        private KeepAliveContainer _keepAliveContainer;
+        
+        public void AwakeEarly()
+        {
+            var exiting = SingletonLocator<SaveDataContextProviderBehavior>.Instance;
+            if (exiting != null && exiting != this)
+            {
+                Log.Error("Duplicate SaveDataContextProviderBehavior detected, destroying the newly instantiated", this);
+                _isDestroyingDueToDuplicateSingleton = true;
+                Destroy(gameObject);
+                return;
+            }
+            
+            if (Application.isPlaying)
+            {
+                this.transform.SetParent(null);
+                Object.DontDestroyOnLoad(gameObject);
+            }
+            
+            _provider = SaveDataContextProvider.CreateAndPersistTo(this);
+            foreach (string context in contextsToManage)
+            {
+                _provider.LoadContext(context);
+            }
+            _keepAliveContainer = new KeepAliveContainer(OnAllHandlesDestroyed);
+        }
+        private void Awake()
+        {
+            if (_isDestroyingDueToDuplicateSingleton) return;
+            Debug.Assert(_provider != null, "SaveDataContextProviderBehavior.Awake: _provider != null");
+        }
+        private void OnDestroy()
+        {
+            if (_isDestroyingDueToDuplicateSingleton) return;
+            Debug.Assert(_provider != null, "SaveDataContextProviderBehavior.OnDestroy: _provider != null");
+            Debug.Assert(_provider.IsDisposed == false, "SaveDataContextProviderBehavior.OnDestroy: _provider.IsDisposed == false");
+            
+            _keepAliveContainer.SetReadyToDispose();
+        }
+        private void OnAllHandlesDestroyed()
+        {
+            if (_isDestroyingDueToDuplicateSingleton) return;
+            foreach (string context in contextsToManage)
+            {
+                _provider.PersistContext(context);
+            }
+            _provider.Dispose();
+            _provider = null;
+        }
+
+        private string EnsureSaveFilePath(string contextKey)
+        {
+            var fileName = $"{contextKey}.json";
+            var directoryPath = Path.Join(Application.persistentDataPath, rootFolderPath);
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+            var saveFile = Path.Join(directoryPath, fileName);
+            return saveFile;
+        }
+        
+        public TextWriter WriteTo(string contextKey)
+        {
+            var filePath = EnsureSaveFilePath(contextKey);
+            Log.Info($"Saving to {filePath}");
+            return new StreamWriter(filePath, append: false);
+        }
+
+        public TextReader ReadFrom(string contextKey)
+        {
+            var filePath = EnsureSaveFilePath(contextKey);
+            if (!File.Exists(filePath)) return null;
+            Log.Info($"Reading from {filePath}");
+            return new StreamReader(filePath);
+        }
+
+        public void Delete(string contextKey)
+        {
+            var filePath = EnsureSaveFilePath(contextKey);
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+
+        private void WarnIfUntrackedContext(string contextKey)
+        {
+            var foundIndex = Array.IndexOf(contextsToManage, contextKey);
+            if(foundIndex == -1)
+            {
+                Log.Warning($"context key {contextKey} is not being managed by this provider. It will not be saved or loaded on destroy/awake", this);
+            }
+        }
+        
+        public ISaveDataContext GetContext(string contextKey)
+        {
+            WarnIfUntrackedContext(contextKey);
+            return _provider.GetContext(contextKey);
+        }
+
+        public void PersistContext(string contextKey) => _provider.PersistContext(contextKey);
+        public void LoadContext(string contextKey) => _provider.LoadContext(contextKey);
+        public void DeleteContext(string contextKey) => _provider.DeleteContext(contextKey);
+        public IEnumerable<string> AllContexts() => _provider.AllContexts();
+        public IKeepAliveHandle KeepAliveUntil() => _keepAliveContainer.KeepAliveUntil();
+    }
+}
