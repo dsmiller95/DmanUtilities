@@ -10,6 +10,7 @@ namespace SaveSystem.Test
     [Serializable]
     public class SerializableAnimal
     {
+
         [SerializeField] private string name;
         [SerializeField] private int age;
 
@@ -41,7 +42,7 @@ namespace SaveSystem.Test
         {
             return $"animal: {name}, {age}yrs";
         }
-        
+
         protected bool Equals(SerializableAnimal other)
         {
             return name == other.name && age == other.age;
@@ -57,9 +58,11 @@ namespace SaveSystem.Test
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(name, age);
+            unchecked
+            {
+                return ((name != null ? name.GetHashCode() : 0) * 397) ^ age;
+            }
         }
-
     }
 
     [Serializable]
@@ -92,8 +95,12 @@ namespace SaveSystem.Test
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(base.GetHashCode(), taggedName);
+            unchecked
+            {
+                return (base.GetHashCode() * 397) ^ (taggedName != null ? taggedName.GetHashCode() : 0);
+            }
         }
+
     }
 
     [Serializable]
@@ -110,6 +117,7 @@ namespace SaveSystem.Test
         {
             return $"cat: {personality}, {base.ToString()}";
         }
+        
         protected bool Equals(SerializableCat other)
         {
             return base.Equals(other) && personality == other.personality;
@@ -125,9 +133,11 @@ namespace SaveSystem.Test
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(base.GetHashCode(), (int)personality);
+            unchecked
+            {
+                return (base.GetHashCode() * 397) ^ (int)personality;
+            }
         }
-
     }
     
     [Serializable]
@@ -179,8 +189,12 @@ namespace SaveSystem.Test
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(name, age);
+            unchecked
+            {
+                return ((name != null ? name.GetHashCode() : 0) * 397) ^ age;
+            }
         }
+
     }
 
     

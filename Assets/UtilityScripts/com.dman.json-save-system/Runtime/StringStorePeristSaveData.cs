@@ -7,7 +7,7 @@ namespace SaveSystem
 {
     public class StringStorePersistSaveData : IPersistSaveData, IDisposable
     {
-        private Dictionary<string, MemoryStream> _store = new();
+        private Dictionary<string, MemoryStream> _store = new Dictionary<string, MemoryStream>();
 
         public static StringStorePersistSaveData WithFiles(params (string name, string contents)[] files)
         {
@@ -44,8 +44,9 @@ namespace SaveSystem
 
         public void Delete(string contextKey)
         {
-            if (_store.Remove(contextKey, out var removedStream))
+            if (_store.TryGetValue(contextKey, out var removedStream))
             {
+                _store.Remove(contextKey);
                 removedStream.Dispose();
             }
         }

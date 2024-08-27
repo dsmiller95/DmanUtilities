@@ -21,7 +21,7 @@ namespace SaveSystem
     {
         private readonly IPersistSaveData _persistence;
         private readonly string _rootFolderPath;
-        private Dictionary<string, SaveDataContextHandle> saveContexts = new();
+        private Dictionary<string, SaveDataContextHandle> saveContexts = new Dictionary<string, SaveDataContextHandle>();
         private readonly JsonSerializer _serializer;
         public bool IsDisposed { get; private set; } = false;
 
@@ -155,8 +155,8 @@ namespace SaveSystem
                 _data = data ?? new JObject();
             }
 
-            public static SaveDataContext Empty(JsonSerializer serializer) => new(serializer);
-            public static SaveDataContext Loaded(JObject data, JsonSerializer serializer) => new(serializer, data);
+            public static SaveDataContext Empty(JsonSerializer serializer) => new SaveDataContext(serializer);
+            public static SaveDataContext Loaded(JObject data, JsonSerializer serializer) => new SaveDataContext(serializer, data);
             
             public void Save<T>(string key, T value)
             {

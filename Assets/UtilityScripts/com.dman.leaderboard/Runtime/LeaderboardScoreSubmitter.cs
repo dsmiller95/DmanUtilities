@@ -8,11 +8,8 @@ namespace Leaderboard
 {
     public class LeaderboardScoreSubmitter : MonoBehaviour
     {
-        [SerializeField] private LeaderboardDefinition leaderboard = new()
-        {
-            leaderboardName = "default",
-            higherIsBetter = true
-        };
+        [SerializeField] private LeaderboardDefinition leaderboard = LeaderboardDefinition.Default;
+        
         [SerializeField] bool isValidScore = false;
         
         private bool _hasNewScore = false;

@@ -9,11 +9,7 @@ namespace Leaderboard
     public class LeaderboardDisplayController : MonoBehaviour
     {
         [SerializeField] private int maxResults = 10;
-        [SerializeField] private LeaderboardDefinition leaderboard = new()
-        {
-            leaderboardName = "default",
-            higherIsBetter = true
-        };
+        [SerializeField] private LeaderboardDefinition leaderboard = LeaderboardDefinition.Default;
         
         private AsyncFnOnceCell _renderLeaderboardCell;
 

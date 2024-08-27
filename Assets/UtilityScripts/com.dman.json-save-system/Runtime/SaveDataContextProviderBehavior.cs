@@ -80,12 +80,12 @@ namespace SaveSystem
         private string EnsureSaveFilePath(string contextKey)
         {
             var fileName = $"{contextKey}.json";
-            var directoryPath = Path.Join(Application.persistentDataPath, rootFolderPath);
+            var directoryPath = Path.Combine(Application.persistentDataPath, rootFolderPath);
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
-            var saveFile = Path.Join(directoryPath, fileName);
+            var saveFile = Path.Combine(directoryPath, fileName);
             return saveFile;
         }
         

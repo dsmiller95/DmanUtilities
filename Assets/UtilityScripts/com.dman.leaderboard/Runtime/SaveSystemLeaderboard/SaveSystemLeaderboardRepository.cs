@@ -5,6 +5,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Dman.Utilities;
 using Leaderboard.Interfaces;
+using SaveSystem;
 
 namespace Leaderboard.SaveSystemLeaderboard
 {
@@ -127,7 +128,10 @@ namespace Leaderboard.SaveSystemLeaderboard
             
             var mappedEntries = entries.Select(x =>
             {
-                var user = usersDictionary.GetValueOrDefault(x.userId);
+                if (!usersDictionary.TryGetValue(x.userId, out var user))
+                {
+                    user = default;
+                }
                 
                 return new LeaderboardEntry
                 {

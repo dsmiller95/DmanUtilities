@@ -9,15 +9,63 @@ using static SaveSystem.Test.SaveDataTestUtils;
 
 namespace SaveSystem.Test
 {
-    public record Animal
+    public class Animal : IEquatable<Animal>
     {
+
         public string Name { get; set; }
         public int Age { get; set; }
+
+        public bool Equals(Animal other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Name == other.Name && Age == other.Age;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Animal)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return ((Name != null ? Name.GetHashCode() : 0) * 397) ^ Age;
+            }
+        }
     }
 
-    public record Dog : Animal
+    public class Dog : Animal, IEquatable<Dog>
     {
         public string TaggedName { get; set; }
+
+        public bool Equals(Dog other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return base.Equals(other) && TaggedName == other.TaggedName;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Dog)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (base.GetHashCode() * 397) ^ (TaggedName != null ? TaggedName.GetHashCode() : 0);
+            }
+        }
+
     }
 
     [TypeConverter(typeof(EnumConverter))]
@@ -27,13 +75,40 @@ namespace SaveSystem.Test
         Aggressive,
         Indifferent
     }
-    public record Cat : Animal
+    public class Cat : Animal, IEquatable<Cat>
     {
         public Personality Personality { get; set; }
+        
+        public bool Equals(Cat other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return base.Equals(other) && Personality == other.Personality;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Cat)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (base.GetHashCode() * 397) ^ (int)Personality;
+            }
+        }
+
     }
     
     public class Zoo : IEquatable<Zoo>
     {
+        public string Name { get; set; }
+        public List<Animal> Animals { get; set; }
+        
         public bool Equals(Zoo other)
         {
             if (ReferenceEquals(null, other)) return false;
@@ -51,11 +126,11 @@ namespace SaveSystem.Test
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Name, Animals);
+            unchecked
+            {
+                return ((Name != null ? Name.GetHashCode() : 0) * 397) ^ (Animals != null ? Animals.GetHashCode() : 0);
+            }
         }
-
-        public string Name { get; set; }
-        public List<Animal> Animals { get; set; }
     }
     
     public class TestSaveDataRoundTrip

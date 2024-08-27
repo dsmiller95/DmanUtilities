@@ -44,7 +44,7 @@ namespace Leaderboard
         {
             if(str == null) return "";
             if (str.Length <= length) return str;
-            return str[..length];
+            return str.Substring(0, length);
         }
     }
 }
