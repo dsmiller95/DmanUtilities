@@ -5,6 +5,7 @@
   "description": "A modular leaderboard which allows for pluggin in different leaderboard backends",
   "unity": "2020.1",
   "dependencies": {
+    "com.cysharp.unitask": "2.5.5",
     "com.dman.json-save-system": "0.1.0",
     "com.dman.utilities": "0.7.0"
   },
