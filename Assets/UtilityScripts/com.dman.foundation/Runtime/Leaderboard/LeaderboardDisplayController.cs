@@ -31,13 +31,13 @@ namespace Dman.Leaderboard
 
         private void Start()
         {
-            LeaderboardPlayerSingleton.OnPlayerStateChanged += OnPlayerStateChanged;
+            LeaderboardPlayerSingleton.PlayerStateChanged += OnPlayerStateChanged;
             _renderLeaderboardCell.TryRun(RenderLeaderboard, "could not render leaderboard");
         }
 
         private void OnDestroy()
         {
-            LeaderboardPlayerSingleton.OnPlayerStateChanged -= OnPlayerStateChanged;
+            LeaderboardPlayerSingleton.PlayerStateChanged -= OnPlayerStateChanged;
         }
 
         private void OnPlayerStateChanged(LeaderboardPlayerOptionsState obj)

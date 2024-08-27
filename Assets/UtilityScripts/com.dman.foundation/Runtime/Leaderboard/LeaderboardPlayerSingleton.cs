@@ -13,7 +13,7 @@ namespace Dman.Leaderboard
     /// </summary>
     internal static class LeaderboardPlayerSingleton
     {
-        public static Action<LeaderboardPlayerOptionsState> OnPlayerStateChanged;
+        public static Action<LeaderboardPlayerOptionsState> PlayerStateChanged;
         private static LeaderboardPlayerOptionsState? _playerState;
 
         private static string _saveContextName = null;
@@ -71,7 +71,7 @@ namespace Dman.Leaderboard
             LeaderboardSingleton.Repository?
                 .WritePlayerName(newPlayerOptionsState.leaderboardName, CancellationToken.None).Forget();
             
-            OnPlayerStateChanged?.Invoke(newPlayerOptionsState);
+            PlayerStateChanged?.Invoke(newPlayerOptionsState);
         }
 
         private static void ThrowIfNotInitialized()

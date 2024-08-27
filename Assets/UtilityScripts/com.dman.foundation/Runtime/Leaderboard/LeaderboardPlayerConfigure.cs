@@ -13,7 +13,7 @@ namespace Dman.Leaderboard
         
         private void Awake()
         {
-            LeaderboardPlayerSingleton.OnPlayerStateChanged += OnPlayerStateChanged;
+            LeaderboardPlayerSingleton.PlayerStateChanged += OnPlayerStateChanged;
             
             var state = LeaderboardPlayerSingleton.GetLeaderboardPlayerState();
             OnPlayerStateChanged(state);
