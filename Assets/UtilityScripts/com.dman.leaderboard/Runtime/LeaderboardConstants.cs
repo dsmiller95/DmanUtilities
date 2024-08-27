@@ -1,6 +1,6 @@
 using System;
 
-namespace Leaderboard
+namespace Dman.Leaderboard
 {
     public static class LeaderboardConstants
     {

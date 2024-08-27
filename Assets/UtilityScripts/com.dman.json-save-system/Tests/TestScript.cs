@@ -2,7 +2,7 @@ using System.Collections;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 
-namespace SaveSystem.Test
+namespace Dman.SaveSystem.Tests
 {
     public class TestScript
     {

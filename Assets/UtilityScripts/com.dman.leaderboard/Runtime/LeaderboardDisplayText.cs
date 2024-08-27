@@ -1,11 +1,10 @@
 ﻿using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Leaderboard.Interfaces;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Leaderboard
+namespace Dman.Leaderboard
 {
     public interface ILeaderboardDisplay
     {

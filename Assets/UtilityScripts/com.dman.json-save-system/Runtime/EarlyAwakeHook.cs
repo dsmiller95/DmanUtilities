@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SaveSystem
+namespace Dman.SaveSystem
 {
     public interface IAwakeEarly
     {

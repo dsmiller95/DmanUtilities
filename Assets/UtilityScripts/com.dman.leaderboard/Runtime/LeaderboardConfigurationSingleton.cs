@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Leaderboard
+namespace Dman.Leaderboard
 {
     [DefaultExecutionOrder(-1000)]
     public class LeaderboardConfigurationSingleton : MonoBehaviour

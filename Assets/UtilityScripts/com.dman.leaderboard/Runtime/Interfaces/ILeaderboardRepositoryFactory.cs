@@ -1,6 +1,6 @@
 using System;
 
-namespace Leaderboard.Interfaces
+namespace Dman.Leaderboard
 {
     /// <summary>
     /// To Implementers: Implement this interface on a monobehavior, and tag it with [UnitySingleton] <br/>

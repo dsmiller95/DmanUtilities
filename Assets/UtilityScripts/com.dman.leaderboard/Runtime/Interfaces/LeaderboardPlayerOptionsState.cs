@@ -1,7 +1,7 @@
 using System;
 using JetBrains.Annotations;
 
-namespace Leaderboard.Interfaces
+namespace Dman.Leaderboard
 {
     [Serializable]
     internal struct LeaderboardPlayerOptionsState

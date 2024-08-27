@@ -1,10 +1,9 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Dman.Utilities.Logger;
-using Leaderboard.Interfaces;
 using UnityEngine;
 
-namespace Leaderboard
+namespace Dman.Leaderboard
 {
     public class LeaderboardDisplayController : MonoBehaviour
     {

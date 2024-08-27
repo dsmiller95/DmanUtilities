@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Dman.SaveSystem;
 using Dman.Utilities;
-using Leaderboard.Interfaces;
-using SaveSystem;
 
-namespace Leaderboard.SaveSystemLeaderboard
+namespace Dman.Leaderboard.SaveSystemLeaderboard
 {
     public class SaveSystemLeaderboardRepository : ILeaderboardRepository
     {

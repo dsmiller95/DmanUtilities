@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace SaveSystem
+namespace Dman.SaveSystem
 {
     public class StringStorePersistSaveData : IPersistSaveData, IDisposable
     {

@@ -1,8 +1,10 @@
 {
-    "name": "SaveSystem",
-    "rootNamespace": "SaveSystem",
+    "name": "com.dman.leaderboard",
+    "rootNamespace": "Dman.Leaderboard",
     "references": [
-        "GUID:59e83f50c45b3c04faa860925fdf2547"
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:59e83f50c45b3c04faa860925fdf2547",
+        "GUID:07db8cda54b946dbb4152ca84b063ccb"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

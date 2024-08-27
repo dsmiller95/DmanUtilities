@@ -1,9 +1,8 @@
 ﻿using Dman.Utilities;
 using Dman.Utilities.Logger;
 using JetBrains.Annotations;
-using Leaderboard.Interfaces;
 
-namespace Leaderboard
+namespace Dman.Leaderboard
 {
     /// <summary>
     /// consume this in all user code which needs to query or change the leaderboard

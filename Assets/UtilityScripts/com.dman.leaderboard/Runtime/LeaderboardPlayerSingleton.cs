@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Dman.SaveSystem;
 using Dman.Utilities;
 using Dman.Utilities.Logger;
-using Leaderboard.Interfaces;
-using SaveSystem;
 
-namespace Leaderboard
+namespace Dman.Leaderboard
 {
     /// <summary>
     /// Used for internal management of the leaderboard player.

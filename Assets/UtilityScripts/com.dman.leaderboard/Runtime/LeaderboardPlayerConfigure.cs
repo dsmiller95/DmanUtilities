@@ -1,10 +1,9 @@
 using JetBrains.Annotations;
-using Leaderboard.Interfaces;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
 
-namespace Leaderboard
+namespace Dman.Leaderboard
 {
     public class LeaderboardPlayerConfigure : MonoBehaviour
     {

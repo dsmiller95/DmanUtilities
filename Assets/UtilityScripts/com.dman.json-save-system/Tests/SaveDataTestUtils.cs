@@ -1,7 +1,7 @@
 ﻿using Dman.Utilities;
 using NUnit.Framework;
 
-namespace SaveSystem.Test
+namespace Dman.SaveSystem.Tests
 {
     public class SaveDataTestUtils
     {

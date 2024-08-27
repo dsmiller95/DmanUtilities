@@ -1,10 +1,9 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Leaderboard.Interfaces;
-using SaveSystem;
+using Dman.SaveSystem;
 using UnityEngine;
 
-namespace Leaderboard
+namespace Dman.Leaderboard
 {
     public class LeaderboardScoreSubmitter : MonoBehaviour
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace Leaderboard.Interfaces
+namespace Dman.Leaderboard
 {
     [Serializable]
     public struct LeaderboardDefinition

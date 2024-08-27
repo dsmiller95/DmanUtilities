@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Threading;
 
-namespace SaveSystem
+namespace Dman.SaveSystem
 {
     public interface IAmKeptAlive
     {

@@ -1,13 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using NUnit.Framework;
-using UnityEngine.TestTools;
-using static SaveSystem.Test.SaveDataTestUtils;
+using static Dman.SaveSystem.Tests.SaveDataTestUtils;
 
-namespace SaveSystem.Test
+namespace Dman.SaveSystem.Tests
 {
     public class Animal : IEquatable<Animal>
     {

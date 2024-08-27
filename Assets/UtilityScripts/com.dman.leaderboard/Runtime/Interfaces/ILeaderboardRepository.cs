@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 
-namespace Leaderboard.Interfaces
+namespace Dman.Leaderboard
 {
     public interface ILeaderboardRepository
     {

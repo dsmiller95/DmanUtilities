@@ -6,7 +6,7 @@ using Dman.Utilities.Logger;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace SaveSystem
+namespace Dman.SaveSystem
 {
     [UnitySingleton]
     [RequireComponent(typeof(EarlyAwakeHook))]
