@@ -1,12 +1,13 @@
-﻿using Dman.Utilities;
+﻿using Dman.SaveSystem;
+using Dman.Utilities;
 using NUnit.Framework;
 
-namespace Dman.SaveSystem.Tests
+namespace Dman.Foundation.Tests
 {
     public class SaveDataTestUtils
     {
-        public static readonly string Namespace = "Dman.SaveSystem.Tests";
-        public static readonly string Assembly = "com.dman.json-save-system.tests";
+        public static readonly string Namespace = "Dman.Foundation.Tests";
+        public static readonly string Assembly = "com.dman.foundation.tests";
         
         public static string GetSerializedToAndAssertRoundTrip(params (string key, object data)[] datas)
         {

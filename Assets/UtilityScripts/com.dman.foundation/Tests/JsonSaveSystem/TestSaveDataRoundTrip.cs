@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using Dman.SaveSystem;
 using NUnit.Framework;
-using static Dman.SaveSystem.Tests.SaveDataTestUtils;
+using static Dman.Foundation.Tests.SaveDataTestUtils;
 
-namespace Dman.SaveSystem.Tests
+namespace Dman.Foundation.Tests
 {
     public class Animal : IEquatable<Animal>
     {
