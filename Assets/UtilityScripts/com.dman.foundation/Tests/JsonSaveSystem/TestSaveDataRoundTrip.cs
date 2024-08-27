@@ -267,30 +267,30 @@ namespace Dman.SaveSystem.Tests
                     }
                 }
             };
-            var expectedSavedString = @"
-{
-  ""zoo"": {
+            var expectedSavedString = @$"
+{{
+  ""zoo"": {{
     ""name"": ""Chaos zoo"",
     ""animals"": [
-      {
-        ""$type"": ""SaveSystem.Test.Dog, SaveSystem.Test"",
+      {{
+        ""$type"": ""{Namespace}.Dog, {Assembly}"",
         ""taggedName"": ""Fido the Third"",
         ""name"": ""Fido"",
         ""age"": 3
-      },
-      {
-        ""$type"": ""SaveSystem.Test.Cat, SaveSystem.Test"",
+      }},
+      {{
+        ""$type"": ""{Namespace}.Cat, {Assembly}"",
         ""personality"": ""Indifferent"",
         ""name"": ""Mr. green"",
         ""age"": 6
-      },
-      {
+      }},
+      {{
         ""name"": ""Borg"",
         ""age"": 3000
-      }
+      }}
     ]
-  }
-}
+  }}
+}}
 ".Trim();
             // act
             var savedString = GetSerializedToAndAssertRoundTrip(

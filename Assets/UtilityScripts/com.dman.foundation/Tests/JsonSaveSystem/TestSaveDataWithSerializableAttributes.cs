@@ -315,27 +315,27 @@ namespace Dman.SaveSystem.Tests
                 new SerializableCat(2, Personality.Indifferent),
                 new SerializableAnimal(0)
             };
-            var expectedSavedString = @"
-{
+            var expectedSavedString = @$"
+{{
   ""zoo"": [
-    {
-      ""$type"": ""SaveSystem.Test.SerializableDog, SaveSystem.Test"",
+    {{
+      ""$type"": ""{Namespace}.SerializableDog, {Assembly}"",
       ""taggedName"": ""Fido the Third"",
       ""name"": ""Fido"",
       ""age"": 3
-    },
-    {
-      ""$type"": ""SaveSystem.Test.SerializableCat, SaveSystem.Test"",
+    }},
+    {{
+      ""$type"": ""{Namespace}.SerializableCat, {Assembly}"",
       ""personality"": ""Indifferent"",
       ""name"": ""Mr. green"",
       ""age"": 6
-    },
-    {
+    }},
+    {{
       ""name"": ""Borg"",
       ""age"": 3000
-    }
+    }}
   ]
-}
+}}
 ".Trim();
             // act
             var savedString = GetSerializedToAndAssertRoundTrip(

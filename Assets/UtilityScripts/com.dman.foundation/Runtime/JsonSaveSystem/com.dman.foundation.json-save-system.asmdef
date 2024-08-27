@@ -1,5 +1,5 @@
 {
-    "name": "com.dman.json-save-system",
+    "name": "com.dman.foundation.json-save-system",
     "rootNamespace": "Dman.SaveSystem",
     "references": [
         "GUID:59e83f50c45b3c04faa860925fdf2547"

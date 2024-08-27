@@ -5,6 +5,9 @@ namespace Dman.SaveSystem.Tests
 {
     public class SaveDataTestUtils
     {
+        public static readonly string Namespace = "Dman.SaveSystem.Tests";
+        public static readonly string Assembly = "com.dman.json-save-system.tests";
+        
         public static string GetSerializedToAndAssertRoundTrip(params (string key, object data)[] datas)
         {
             var contextName = "test";
