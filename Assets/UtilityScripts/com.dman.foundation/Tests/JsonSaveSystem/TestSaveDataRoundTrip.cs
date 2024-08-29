@@ -10,7 +10,6 @@ namespace Dman.Foundation.Tests
 {
     public class Animal : IEquatable<Animal>
     {
-
         public string Name { get; set; }
         public int Age { get; set; }
 

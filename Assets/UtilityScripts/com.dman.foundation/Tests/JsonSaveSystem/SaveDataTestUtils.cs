@@ -20,6 +20,21 @@ namespace Dman.Foundation.Tests
             return serializedString;
         }
 
+        public static void AssertDeserializeWithoutError(
+            string contextName,
+            string serializedString,
+            params (string key, object data)[] datas)
+        {
+            using var stringStore = StringStorePersistSaveData.WithFiles((contextName, serializedString));
+            var saveDataContextProvider = SaveDataContextProvider.CreateAndPersistTo(stringStore);
+            saveDataContextProvider.LoadContext(contextName);
+            var saveDataContext = saveDataContextProvider.GetContext(contextName);
+            foreach (var (key, data) in datas)
+            {
+                Assert.IsTrue(saveDataContext.TryLoad(key, out var actualData, data.GetType()));
+            }
+        }
+        
         private static void AssertExternalRoundTrip(
             (string key, object data)[] datas,
             string contextName,

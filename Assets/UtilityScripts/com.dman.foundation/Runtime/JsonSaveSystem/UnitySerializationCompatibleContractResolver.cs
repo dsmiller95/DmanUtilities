@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ namespace Dman.SaveSystem
 {
     public class UnitySerializationCompatibleContractResolver : DefaultContractResolver
     {
-        
+        public JsonConverter DelegatedConverter { get; set; }= null;
         protected override JsonContract CreateContract(Type objectType)
         {
             // Throw an exception if the type derives from UnityEngine.Object
@@ -17,8 +18,15 @@ namespace Dman.SaveSystem
             {
                 throw new InvalidOperationException($"Serialization of unity engine objects is not allowed. Tried to serialize {objectType.Name}");
             }
+            
+            var defaultContract = base.CreateContract(objectType);
 
-            return base.CreateContract(objectType);
+            if (DelegatedConverter != null && DelegatedConverter.CanConvert(objectType))
+            {
+                defaultContract.Converter = DelegatedConverter;
+            }
+
+            return defaultContract;
         }
         
         protected override List<MemberInfo> GetSerializableMembers(Type objectType)
