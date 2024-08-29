@@ -65,15 +65,14 @@ public class SomethingThatSavesData : MonoBehaviour
             seenSet = new List<string>();
         }
         var containsThing = seenSet.Contains(thing);
+        if (seen == containsThing) return;
         if (seen)
         {
-            if (containsThing) return;
             seenSet.Add(thing);
         }
 
         if (!seen)
         {
-            if (!containsThing) return;
             seenSet.Remove(thing);
         }
         
@@ -98,7 +97,7 @@ The json will be saved to `{Application.persistentDataPath}/SaveContexts/SomeCon
 
 For performance reasons, you may want to cache data inside a component, and only save it when the component is destroyed.
 In this case we need to notify the save system that it should wait until we are done persisting data before it writes this
-data into the save file.
+data into the save file. This is particularly relevant when the save system saves out data when the application exits.
 
 This is done by taking a Keep Alive Handle from the save context, and disposing it after our object lifetime ends in OnDestroy.
 The save system will only persist data when all Keep Alive Handles are disposed, and the save system singleton is destroyed.
