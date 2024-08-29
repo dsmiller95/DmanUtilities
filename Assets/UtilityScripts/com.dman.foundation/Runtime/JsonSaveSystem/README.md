@@ -66,15 +66,9 @@ public class SomethingThatSavesData : MonoBehaviour
         }
         var containsThing = seenSet.Contains(thing);
         if (seen == containsThing) return;
-        if (seen)
-        {
-            seenSet.Add(thing);
-        }
 
-        if (!seen)
-        {
-            seenSet.Remove(thing);
-        }
+        if (seen ) seenSet.Add(thing);
+        if (!seen) seenSet.Remove(thing);
         
         SaveContext.Save(key, seenSet);
     }
