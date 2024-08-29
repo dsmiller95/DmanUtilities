@@ -183,6 +183,7 @@ public class AddVelocityToPosition : IAffectMovement {
 }
 
 public class MovementStrategy {
+    // polymorphic list will include specific type-identifying information in json
     public List<IAffectMovement> MovementAffectors { get; set; }
     public MovementInputParams Input { get; set; }
     public MovementState State { get; set; }
@@ -207,11 +208,11 @@ Serializes to this format:
     }
   ],
   "input": {
-    // Unity primitives like Vector2 are delegated to JsonUtility, which does change the format slightly
     "axisInput": {"x":1.0,"y":0.0},
     "deltaTime": 0.1
   },
   "state": {
+    // Unity primitives like Vector2 are delegated to Unity's JsonUtility
     "currentPosition": {"x":2.0,"y":3.200000047683716},
     "currentVelocity": {"x":4.0,"y":5.0}
   }
