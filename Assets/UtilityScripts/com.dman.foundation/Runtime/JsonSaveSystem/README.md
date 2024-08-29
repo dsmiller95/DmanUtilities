@@ -116,6 +116,8 @@ private void OnDestroy()
 
 # Examples
 
+Taken from this test: [TestSaveDataExamples.cs](../../Tests/JsonSaveSystem/TestSaveDataExamples.cs#L92)
+
 Given this object graph:
 
 ```csharp
