@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Dman.Utilities.Logger;
 
 namespace Dman.SaveSystem
 {
@@ -33,6 +34,19 @@ namespace Dman.SaveSystem
         public void LoadContext(string contextKey);
         public void DeleteContext(string contextKey);
         public IEnumerable<string> AllContexts();
+    }
+
+    public static class SaveDataPersistenceExtensions
+    {
+        public static void PersistAll(this ISaveDataPersistence persistence, bool logInfo = false)
+        {
+            if(logInfo) Log.Info($"PersistAll");
+            foreach (var context in persistence.AllContexts())
+            {
+                if(logInfo) Log.Info($"persisting context {context}");
+                persistence.PersistContext(context);
+            }
+        }
     }
 
     /// <summary>

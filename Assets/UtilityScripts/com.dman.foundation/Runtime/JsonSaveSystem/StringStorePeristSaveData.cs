@@ -32,6 +32,8 @@ namespace Dman.SaveSystem
             return new StreamWriter(memoryStream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true);
         }
 
+        public void OnWriteComplete(string contextKey) { }
+
         public TextReader ReadFrom(string contextKey)
         {
             if(!_store.TryGetValue(contextKey, out var memoryStream))

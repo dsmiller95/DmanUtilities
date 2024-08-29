@@ -12,6 +12,7 @@ namespace Dman.SaveSystem
     public interface IPersistSaveData
     {
         public TextWriter WriteTo(string contextKey);
+        public void OnWriteComplete(string contextKey);
         [CanBeNull] public TextReader ReadFrom(string contextKey);
         public void Delete(string contextKey);
     }
@@ -71,6 +72,7 @@ namespace Dman.SaveSystem
             using var writer = _persistence.WriteTo(contextKey);
             using var jsonWriter = new JsonTextWriter(writer);
             _serializer.Serialize(jsonWriter, contextData);
+            _persistence.OnWriteComplete(contextKey);
             //contextData.WriteTo(jsonWriter);
         }
         

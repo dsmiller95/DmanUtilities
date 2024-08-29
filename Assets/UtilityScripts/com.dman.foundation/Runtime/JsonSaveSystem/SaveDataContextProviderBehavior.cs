@@ -69,10 +69,7 @@ namespace Dman.SaveSystem
         private void OnAllHandlesDestroyed()
         {
             if (_isDestroyingDueToDuplicateSingleton) return;
-            foreach (string context in contextsToManage)
-            {
-                _provider.PersistContext(context);
-            }
+            _provider.PersistAll(logInfo: true);
             _provider.Dispose();
             _provider = null;
         }
@@ -85,21 +82,31 @@ namespace Dman.SaveSystem
             {
                 Directory.CreateDirectory(directoryPath);
             }
+            
             var saveFile = Path.Combine(directoryPath, fileName);
             return saveFile;
         }
         
         public TextWriter WriteTo(string contextKey)
         {
-            var filePath = EnsureSaveFilePath(contextKey);
+            string filePath = EnsureSaveFilePath(contextKey);
             Log.Info($"Saving to {filePath}");
             return new StreamWriter(filePath, append: false);
+        }
+
+        public void OnWriteComplete(string contextKey)
+        {
+            FileSystemJslibAdapter.EnsureSynced();
         }
 
         public TextReader ReadFrom(string contextKey)
         {
             var filePath = EnsureSaveFilePath(contextKey);
-            if (!File.Exists(filePath)) return null;
+            if (!File.Exists(filePath))
+            {
+                Log.Warning($"No file found at {filePath}");
+                return null;
+            }
             Log.Info($"Reading from {filePath}");
             return new StreamReader(filePath);
         }
