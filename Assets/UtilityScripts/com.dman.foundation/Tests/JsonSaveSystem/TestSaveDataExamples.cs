@@ -12,7 +12,6 @@ namespace Dman.Foundation.Tests
         [SerializeField] public Vector2 axisInput;
         public float deltaTime;
     }
-
     public class MovementState
     {
         public Vector2 CurrentPosition { get; set; }
@@ -56,14 +55,6 @@ namespace Dman.Foundation.Tests
         public List<IAffectMovement> MovementAffectors { get; set; }
         public MovementInputParams Input { get; set; }
         public MovementState State { get; set; }
-        
-        public void ApplyAll()
-        {
-            foreach (var affector in MovementAffectors)
-            {
-                affector.AffectMovement(State, Input);
-            }
-        }
     }
     
     public class TestSaveDataExamples
