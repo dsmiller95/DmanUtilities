@@ -16,6 +16,12 @@ namespace Dman.Leaderboard
         /// The amount of time to wait after a write operation before reading the leaderboard.
         /// </summary>
         public TimeSpan WaitAfterWritesToRead { get; }
+        
+        /// <summary>
+        /// Whether this repository supports changing the player's name. Some repositories may have a fixed name,
+        /// for example Steam will use the player's username.
+        /// </summary>
+        public bool SupportsNameChange { get; }
 
         /// <summary>
         /// Writes the current user's score to the given leaderboard.

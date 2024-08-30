@@ -44,6 +44,7 @@ namespace Dman.Leaderboard.SaveSystemLeaderboard
         }
 
         public TimeSpan WaitAfterWritesToRead => TimeSpan.Zero;
+        public bool SupportsNameChange => true;
 
         public UniTask WriteScore(LeaderboardDefinition leaderboard, int score, LeaderboardUpdateOptions updateOptions, CancellationToken cancel)
         {
