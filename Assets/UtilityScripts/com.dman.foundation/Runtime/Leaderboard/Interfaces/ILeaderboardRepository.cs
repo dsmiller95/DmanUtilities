@@ -16,15 +16,16 @@ namespace Dman.Leaderboard
         /// The amount of time to wait after a write operation before reading the leaderboard.
         /// </summary>
         public TimeSpan WaitAfterWritesToRead { get; }
-        
+
         /// <summary>
         /// Writes the current user's score to the given leaderboard.
         /// </summary>
         /// <param name="leaderboard"></param>
         /// <param name="score"></param>
+        /// <param name="updateOptions"></param>
         /// <param name="cancel">May cancel any async operations when cancelled</param>
         /// <returns></returns>
-        public UniTask WriteScore(LeaderboardDefinition leaderboard, int score, CancellationToken cancel);
+        public UniTask WriteScore(LeaderboardDefinition leaderboard, int score, LeaderboardUpdateOptions updateOptions, CancellationToken cancel);
 
         /// <summary>
         /// Change the current player's preferred name. this name should appear in LeaderboardEntries.

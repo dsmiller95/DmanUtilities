@@ -45,7 +45,7 @@ namespace Dman.Leaderboard.SaveSystemLeaderboard
 
         public TimeSpan WaitAfterWritesToRead => TimeSpan.Zero;
 
-        public UniTask WriteScore(LeaderboardDefinition leaderboard, int score, CancellationToken cancel)
+        public UniTask WriteScore(LeaderboardDefinition leaderboard, int score, LeaderboardUpdateOptions updateOptions, CancellationToken cancel)
         {
             if (!SaveContext.TryLoad(EntriesSaveKey, out List<SavedLeaderboardEntry> entries))
             {
@@ -65,13 +65,16 @@ namespace Dman.Leaderboard.SaveSystemLeaderboard
             else
             {
                 var existingEntry = entries[existingEntryIndex];
-                if(leaderboard.higherIsBetter && existingEntry.score > score)
+                if (updateOptions.updateType == LeaderboardUpdateType.KeepBest)
                 {
-                    return UniTask.CompletedTask;
-                }
-                if(!leaderboard.higherIsBetter && existingEntry.score < score)
-                {
-                    return UniTask.CompletedTask;
+                    if(leaderboard.higherIsBetter && existingEntry.score > score)
+                    {
+                        return UniTask.CompletedTask;
+                    }
+                    if(!leaderboard.higherIsBetter && existingEntry.score < score)
+                    {
+                        return UniTask.CompletedTask;
+                    }
                 }
                 
                 existingEntry.score = score;

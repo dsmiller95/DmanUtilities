@@ -8,6 +8,7 @@ namespace Dman.Leaderboard
     public class LeaderboardScoreSubmitter : MonoBehaviour
     {
         [SerializeField] private LeaderboardDefinition leaderboard = LeaderboardDefinition.Default;
+        [SerializeField] private LeaderboardUpdateOptions updateOptions = LeaderboardUpdateOptions.Default;
         
         [SerializeField] bool isValidScore = false;
         
@@ -37,7 +38,7 @@ namespace Dman.Leaderboard
             if (!isValidScore) return;
             
             LeaderboardSingleton.Repository?
-                .WriteScore(leaderboard, _currentCachedScore, CancellationToken.None).Forget();
+                .WriteScore(leaderboard, _currentCachedScore, updateOptions, CancellationToken.None).Forget();
         }
         
         private void OnDestroy()
