@@ -20,6 +20,8 @@ namespace Dman.Leaderboard
     {
         [SerializeField] private int maxResults = 10;
         [SerializeField] private LeaderboardDefinition leaderboard = LeaderboardDefinition.Default;
+        [Tooltip("when set, search this object for a component that implements ILeaderboardDisplay. Otherwise will use the gameObject this script is attached to")]
+        [SerializeField] private GameObject leaderboardDisplayObject;
         
         private AsyncFnOnceCell _renderLeaderboardCell;
         
@@ -81,7 +83,8 @@ namespace Dman.Leaderboard
 
             var leaderboardContents = await repository.GetLeaderboard(leaderboard, maxResults, cancel)
                 .AttachExternalCancellation(cancel);
-            var displayer = GetComponent<ILeaderboardDisplay>();
+            var displayObject = leaderboardDisplayObject == null ? gameObject : leaderboardDisplayObject;
+            var displayer = displayObject.GetComponent<ILeaderboardDisplay>();
             if (displayer == null)
             {
                 Log.Error($"Found no leaderboard displayer. add a component that implements {nameof(ILeaderboardDisplay)} to this object");
