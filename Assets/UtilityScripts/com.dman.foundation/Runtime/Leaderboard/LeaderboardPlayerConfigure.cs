@@ -10,6 +10,9 @@ namespace Dman.Leaderboard
         [SerializeField] private int maxLeaderboardNameLength = 4;
         [SerializeField] private UnityEvent<bool> onLeaderboardEnabledChanged;
         [FormerlySerializedAs("onLeaderboardNameChanged")] [SerializeField] private UnityEvent<string> onPlayerNameChanged;
+
+        [Tooltip("this will be disabled if the selected leaderboard does not support changing the player name")]
+        [SerializeField] private GameObject nameInputField;
         
         private void Awake()
         {
@@ -17,6 +20,16 @@ namespace Dman.Leaderboard
             
             var state = LeaderboardPlayerSingleton.GetLeaderboardPlayerState();
             OnPlayerStateChanged(state);
+            
+            LeaderboardSingleton.OnRepositoryMayChange += EnableIfAllowed;
+            EnableIfAllowed();
+        }
+
+        private void EnableIfAllowed()
+        {
+            if(nameInputField == null) return;
+            var supportsNameChange = LeaderboardSingleton.Repository?.SupportsNameChange ?? false;
+            nameInputField.SetActive(supportsNameChange);
         }
 
         private LeaderboardPlayerOptionsState? lastState = null; 

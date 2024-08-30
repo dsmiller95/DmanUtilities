@@ -67,9 +67,14 @@ namespace Dman.Leaderboard
                 return;
             }
             SaveContext.Save(LeaderboardConstants.PlayerOptionsSaveKey, newPlayerOptionsState);
-            
-            LeaderboardSingleton.Repository?
+            var lastPlayerState = _playerState;
+            _playerState = newPlayerOptionsState;
+
+            if (lastPlayerState?.leaderboardName != newPlayerOptionsState.leaderboardName)
+            {
+                LeaderboardSingleton.Repository?
                 .WritePlayerName(newPlayerOptionsState.leaderboardName, CancellationToken.None).Forget();
+            }
             
             PlayerStateChanged?.Invoke(newPlayerOptionsState);
         }

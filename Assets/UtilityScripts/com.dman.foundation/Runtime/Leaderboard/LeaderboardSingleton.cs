@@ -1,4 +1,5 @@
-﻿using Dman.Utilities;
+﻿using System;
+using Dman.Utilities;
 using Dman.Utilities.Logger;
 using JetBrains.Annotations;
 
@@ -13,6 +14,7 @@ namespace Dman.Leaderboard
 
         private static ILeaderboardRepositoryFactory _repositoryFactory;
         
+        public static event Action OnRepositoryMayChange;
         [CanBeNull]
         public static ILeaderboardRepository Repository
         {
@@ -50,6 +52,7 @@ namespace Dman.Leaderboard
         {
             // trigger a re-pull of the repository on the next Get
             _repository = null;
+            OnRepositoryMayChange?.Invoke();
         }
     }
 }
