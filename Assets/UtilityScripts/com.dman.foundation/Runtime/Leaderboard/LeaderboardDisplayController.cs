@@ -5,13 +5,24 @@ using UnityEngine;
 
 namespace Dman.Leaderboard
 {
+    /// <summary>
+    /// Refreshes the leaderboard when:
+    /// - it is enabled
+    /// - the player's name changes
+    ///
+    /// A leaderboard refresh consists of:
+    /// - submitting all scores represented by ScoreSubmitter components in the scene
+    /// - waiting for the scores to be written
+    /// - reading the leaderboard
+    /// - displaying the leaderboard via an attached ILeaderboardDisplay component
+    /// </summary>
     public class LeaderboardDisplayController : MonoBehaviour
     {
         [SerializeField] private int maxResults = 10;
         [SerializeField] private LeaderboardDefinition leaderboard = LeaderboardDefinition.Default;
         
         private AsyncFnOnceCell _renderLeaderboardCell;
-
+        
         public void SetLeaderboard(LeaderboardDefinition definition)
         {
             this.leaderboard = definition;
@@ -29,13 +40,13 @@ namespace Dman.Leaderboard
             _renderLeaderboardCell = new AsyncFnOnceCell(gameObject);
         }
 
-        private void Start()
+        private void OnEnable()
         {
             LeaderboardPlayerSingleton.PlayerStateChanged += OnPlayerStateChanged;
             _renderLeaderboardCell.TryRun(RenderLeaderboard, "could not render leaderboard");
         }
 
-        private void OnDestroy()
+        private void OnDisable()
         {
             LeaderboardPlayerSingleton.PlayerStateChanged -= OnPlayerStateChanged;
         }
