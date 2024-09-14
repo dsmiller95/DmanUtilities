@@ -44,7 +44,7 @@ public class AsyncFnOnceCell
     /// </summary>
     /// <param name="asyncFn"></param>
     /// <param name="warnIfCannotRun"></param>
-    /// <returns></returns>
+    /// <returns>true if completed, false otherwise</returns>
     public bool TryRun(Func<CancellationToken, UniTask> asyncFn, string warnIfCannotRun = null)
     {
         if (isRunning)
@@ -55,6 +55,8 @@ public class AsyncFnOnceCell
             }
             return false;
         }
+
+        if (ownerGameObject == null) return true;
         
         cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             ownerGameObject.GetCancellationTokenOnDestroy());
