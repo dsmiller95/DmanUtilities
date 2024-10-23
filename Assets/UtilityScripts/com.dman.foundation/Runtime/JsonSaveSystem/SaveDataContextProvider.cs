@@ -39,7 +39,6 @@ namespace Dman.SaveSystem
                 ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
                 ContractResolver = new UnitySerializationCompatibleContractResolver
                 {
-                    DelegatedConverter = null, //new UnityJsonUtilityJsonConverter(),
                     NamingStrategy = new CamelCaseNamingStrategy
                     {
                         OverrideSpecifiedNames = false

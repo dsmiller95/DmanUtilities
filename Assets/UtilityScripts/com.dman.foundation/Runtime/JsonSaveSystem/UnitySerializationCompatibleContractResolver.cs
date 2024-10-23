@@ -10,7 +10,6 @@ namespace Dman.SaveSystem
 {
     public class UnitySerializationCompatibleContractResolver : DefaultContractResolver
     {
-        public JsonConverter DelegatedConverter { get; set; }= null;
         protected override JsonContract CreateContract(Type objectType)
         {
             // Throw an exception if the type derives from UnityEngine.Object
@@ -19,14 +18,7 @@ namespace Dman.SaveSystem
                 throw new InvalidOperationException($"Serialization of unity engine objects is not allowed. Tried to serialize {objectType.Name}");
             }
             
-            var defaultContract = base.CreateContract(objectType);
-
-            if (DelegatedConverter != null && DelegatedConverter.CanConvert(objectType))
-            {
-                defaultContract.Converter = DelegatedConverter;
-            }
-
-            return defaultContract;
+            return base.CreateContract(objectType);
         }
         
         protected override List<MemberInfo> GetSerializableMembers(Type objectType)
