@@ -20,8 +20,6 @@ namespace Dman.SaveSystem
                 unityPrimitives.Add(typeof(Vector2));
                 unityPrimitives.Add(typeof(Vector3));
                 unityPrimitives.Add(typeof(Vector4));
-                unityPrimitives.Add(typeof(Vector2Int));
-                unityPrimitives.Add(typeof(Vector3Int));
                 unityPrimitives.Add(typeof(Quaternion));
                 unityPrimitives.Add(typeof(Matrix4x4));
                 unityPrimitives.Add(typeof(Color));
