@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Dman.SaveSystem.Converters;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -38,7 +39,7 @@ namespace Dman.SaveSystem
                 ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
                 ContractResolver = new UnitySerializationCompatibleContractResolver
                 {
-                    DelegatedConverter = new UnityJsonUtilityJsonConverter(),
+                    DelegatedConverter = null, //new UnityJsonUtilityJsonConverter(),
                     NamingStrategy = new CamelCaseNamingStrategy
                     {
                         OverrideSpecifiedNames = false
@@ -52,7 +53,10 @@ namespace Dman.SaveSystem
                 TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
                 Converters = new List<JsonConverter>
                 {
-                    new StringEnumConverter()
+                    new StringEnumConverter(),
+                    new Vector3IntConverter(),
+                    new Vector2IntConverter(),
+                    new UnityJsonUtilityJsonConverter(),
                 },
                 MissingMemberHandling = MissingMemberHandling.Error,
             };
