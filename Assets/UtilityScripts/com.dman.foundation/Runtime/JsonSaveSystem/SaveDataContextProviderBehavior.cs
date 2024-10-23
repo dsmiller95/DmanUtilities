@@ -34,8 +34,9 @@ namespace Dman.SaveSystem
             var exiting = SingletonLocator<SaveDataContextProviderBehavior>.Instance;
             if (exiting != null && exiting != this)
             {
-                Log.Error("Duplicate SaveDataContextProviderBehavior detected, destroying the newly instantiated", this);
+                Log.Warning("Duplicate SaveDataContextProviderBehavior detected, destroying the newly instantiated", this);
                 _isDestroyingDueToDuplicateSingleton = true;
+                gameObject.SetActive(false);
                 Destroy(gameObject);
                 return;
             }
