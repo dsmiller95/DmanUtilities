@@ -111,6 +111,7 @@ namespace Dman.Leaderboard.SaveSystemLeaderboard
                 }
                 
                 existingUser.userName = name;
+                users[existingUserIndex] = existingUser;
             }
             SaveContext.Save(UsersSaveKey, users);
             return UniTask.CompletedTask;
