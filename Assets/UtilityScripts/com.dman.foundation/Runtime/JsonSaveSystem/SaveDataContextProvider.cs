@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using Dman.SaveSystem.Converters;
 using Dman.Utilities.Logger;
 using JetBrains.Annotations;
@@ -12,14 +11,6 @@ using UnityEngine;
 
 namespace Dman.SaveSystem
 {
-    public interface IPersistText
-    {
-        public TextWriter WriteTo(string contextKey);
-        public void OnWriteComplete(string contextKey);
-        [CanBeNull] public TextReader ReadFrom(string contextKey);
-        public void Delete(string contextKey);
-    }
-    
     public class SaveDataContextProvider : ISaveDataContextProvider, ISaveDataPersistence, IDisposable
     {
         private readonly IPersistText _persistence;

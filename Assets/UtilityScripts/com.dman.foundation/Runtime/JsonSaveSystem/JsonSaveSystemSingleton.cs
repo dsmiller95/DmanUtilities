@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Dman.SaveSystem
 {
-    public class JsonSaveSystemSingleton
+    public static class JsonSaveSystemSingleton
     {
         public static string SaveFolderName => Settings.saveFolderName;
         public static string DefaultSaveFileName => Settings.defaultSaveFileName;

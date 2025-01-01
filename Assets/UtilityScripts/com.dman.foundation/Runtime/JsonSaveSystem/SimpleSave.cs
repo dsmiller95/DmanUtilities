@@ -3,6 +3,9 @@ using Dman.Utilities;
 
 namespace Dman.SaveSystem
 {
+    /// <summary>
+    /// simple static API into the save system, for quick and easy usage in simple use cases.
+    /// </summary>
     public static class SimpleSave
     {
         /// <summary>

@@ -5,6 +5,9 @@ using System.Text;
 
 namespace Dman.SaveSystem
 {
+    /// <summary>
+    /// A persistence backend which just stores data in memory.
+    /// </summary>
     public class StringStorePersistText : IPersistText, IDisposable
     {
         private Dictionary<string, MemoryStream> _store = new Dictionary<string, MemoryStream>();
