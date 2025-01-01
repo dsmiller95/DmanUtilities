@@ -5,13 +5,21 @@ namespace Dman.SaveSystem
 {
     public static class SimpleSave
     {
-        public static string SaveFileName { get; private set; }= "root";
+        /// <summary>
+        /// The save file name used by SimpleSave. Can be different from the default.
+        /// </summary>
+        public static string SaveFileName
+        {
+            get => _cachedSaveFileName ??= JsonSaveSystemSingleton.DefaultSaveFileName;
+            private set => _cachedSaveFileName = value;
+        }
+        private static string _cachedSaveFileName;
 
         private static ISaveDataContextProvider SaveFileProvider => JsonSaveSystemSingleton.GetContextProvider();
         private static ISaveDataPersistence SavePersistence => JsonSaveSystemSingleton.GetPersistor();
-        private static ISaveDataContext SaveFile => SaveFileProvider.GetContext(SaveFileName);
+        private static ISaveDataContext SaveFile => SaveFileProvider.GetContext(JsonSaveSystemSingleton.DefaultSaveFileName);
 
-        public static void ChangeDefaultSaveFile(string newSaveFileName)
+        public static void ChangeSaveFile(string newSaveFileName)
         {
             if (newSaveFileName == SaveFileName) return;
             
@@ -19,8 +27,9 @@ namespace Dman.SaveSystem
             Save();
             SaveFileName = newSaveFileName;
         }
+        public static void ChangeSaveFileToDefault() => ChangeSaveFile(JsonSaveSystemSingleton.DefaultSaveFileName);
         
-        public static string GetString(string key, string defaultValue = null) => Get(key, defaultValue);
+        public static string GetString(string key, string defaultValue = "") => Get(key, defaultValue);
         public static void SetString(string key, string value) => Set(key, value);
 
         public static int GetInt(string key, int defaultValue = 0) => Get(key, defaultValue);

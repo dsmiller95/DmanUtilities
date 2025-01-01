@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Dman.SaveSystem;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using static Dman.Foundation.Tests.SaveDataTestUtils;
 // ReSharper disable NonReadonlyMemberInGetHashCode
 
@@ -246,7 +248,7 @@ namespace Dman.Foundation.Tests
         }
         
         [Test]
-        public void WhenLoadsTypeDifferentSerializableType_ThanSaved_Errors()
+        public void WhenLoadsTypeDifferentSerializableType_ThanSaved_LogsError()
         {
             // arrange
             var savedData = new SerializableDog(1, "Fido the Third");
@@ -258,14 +260,12 @@ namespace Dman.Foundation.Tests
             saveDataContext.Save("dogg", savedData);
             saveDataContextProvider.PersistContext("test");
             
-            var loadAction = new TestDelegate(() =>
-            {
-                saveDataContextProvider.LoadContext("test");
-                saveDataContext.TryLoad("dogg", out Cat _);
-            });
+            saveDataContextProvider.LoadContext("test");
+            var didLoad = saveDataContext.TryLoad("dogg", out Cat _);
             
             // assert
-            Assert.Throws<SaveDataException>(loadAction);
+            Assert.IsFalse(didLoad, "The load should fail");
+            LogAssert.Expect(LogType.Error, new Regex(@"Failed to load data of type Dman\.Foundation\.Tests\.Cat for key dogg\. Raw json"));
         }
 
         

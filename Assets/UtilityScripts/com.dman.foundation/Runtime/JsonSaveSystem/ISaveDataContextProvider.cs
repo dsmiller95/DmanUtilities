@@ -47,6 +47,16 @@ namespace Dman.SaveSystem
                 persistence.PersistContext(context);
             }
         }
+        
+        public static void DeleteAll(this ISaveDataPersistence persistence, bool logInfo = false)
+        {
+            if(logInfo) Log.Info($"DeleteAll");
+            foreach (var context in persistence.AllContexts())
+            {
+                if(logInfo) Log.Info($"deleting context {context}");
+                persistence.DeleteContext(context);
+            }
+        }
     }
 
     /// <summary>

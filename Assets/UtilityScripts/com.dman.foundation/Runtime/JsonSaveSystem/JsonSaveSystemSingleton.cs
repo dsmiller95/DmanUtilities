@@ -6,22 +6,60 @@ namespace Dman.SaveSystem
     public class JsonSaveSystemSingleton
     {
         public static string SaveFolderName => Settings.saveFolderName;
+        public static string DefaultSaveFileName => Settings.defaultSaveFileName;
         
         private static JsonSaveSystemSettings Settings => _settings ??= GetSettingsObject();
         private static JsonSaveSystemSettings _settings; 
 
         private static JsonSaveSystemObjectSet SaveSystemObjectSet => _saveSystemObjectSet ??= JsonSaveSystemObjectSet.Create(Settings);
         private static JsonSaveSystemObjectSet _saveSystemObjectSet;
-        
+
+        private static KeepAliveContainer KeepAlive { get; } = new KeepAliveContainer(OnAllKeepAliveDisposed);
+
         public static ISaveDataPersistence GetPersistor() => SaveSystemObjectSet.SavePersistence;
         public static ISaveDataContextProvider GetContextProvider() => SaveSystemObjectSet.ContextProvider;
+        
         /// <summary>
         /// The save system persists data on application exit. In order to prevent race conditions in the case
         /// where a component writes save data OnDestroy, take a keep-alive handle during Awake/Start/OnEnable.
         /// Then dispose the keepAlive handle after your save code runs in OnDestroy.  
         /// </summary>
         /// <returns></returns>
-        public static IDisposable KeepAliveUntilDisposed() => SaveSystemObjectSet.KeepAlive.KeepAliveUntil();
+        public static IDisposable KeepAliveUntilDisposed() => KeepAlive.KeepAliveUntil();
+
+        /// <summary>
+        /// Will save the current state of the save system to disk, then recreate the save system object graph.
+        /// </summary>
+        /// <param name="settings"></param>
+        public static void ForceOverrideSettingsObject(JsonSaveSystemSettings settings)
+        {
+            _settings = settings;
+            if (_saveSystemObjectSet != null)
+            {
+                _saveSystemObjectSet.PersistAllAndDispose();
+                _saveSystemObjectSet = JsonSaveSystemObjectSet.Create(settings);
+            }
+        }
+
+        /// <summary>
+        /// Make the save system behave as if it experienced a forced application quit, without any calls
+        /// to OnApplicationQuit. This means all in-memory save data will be lost.
+        /// </summary>
+        internal static void EmulateForcedQuit()
+        {
+            _saveSystemObjectSet.DisposeWithoutPersisting();
+            _saveSystemObjectSet = null;
+        }
+        
+        /// <summary>
+        /// Make the save system behave as if it experienced a managed application quit. This will save all data to disk.
+        /// and will clear out the in memory provider.
+        /// </summary>
+        internal static void EmulateManagedApplicationQuit()
+        {
+            _saveSystemObjectSet.PersistAllAndDispose();
+            _saveSystemObjectSet = null;
+        }
         
         private static JsonSaveSystemSettings GetSettingsObject()
         {
@@ -34,40 +72,34 @@ namespace Dman.SaveSystem
         }
 
         [RuntimeInitializeOnLoadMethod]
-        static void RunOnStart()
+        private static void RunOnStart()
         {
             Application.quitting += OnApplicationQuit;
         }
 
         private static void OnApplicationQuit()
         {
-            SaveSystemObjectSet.Dispose();
+            KeepAlive.SetReadyToDispose();
+        }
+        
+        private static void OnAllKeepAliveDisposed()
+        {
+            SaveSystemObjectSet.PersistAllAndDispose();
         }
     }
     
-    public class JsonSaveSystemObjectSet : IDisposable
+    public class JsonSaveSystemObjectSet
     {
         public ISaveDataPersistence SavePersistence => _saveContextProvider;
-
         public ISaveDataContextProvider ContextProvider => _saveContextProvider;
 
-        public IAmKeptAlive KeepAlive { get {
-            ThrowIfDisposed();
-            return _keepAliveContainer;
-        } }
-
         private readonly SaveDataContextProvider _saveContextProvider;
-        private readonly KeepAliveContainer _keepAliveContainer;
-        private readonly IDisposable _keepAliveInternalHandle;
         private IPersistText _persistence;
-        private bool _isDisposed = false;
         
         private JsonSaveSystemObjectSet(SaveDataContextProvider saveContextProvider, IPersistText persistence)
         {
             _saveContextProvider = saveContextProvider;
             _persistence = persistence;
-            _keepAliveContainer = new KeepAliveContainer(OnKeepAliveDisposed);
-            _keepAliveInternalHandle = _keepAliveContainer.KeepAliveUntil();
         }
 
         public static JsonSaveSystemObjectSet Create(JsonSaveSystemSettings forSettings)
@@ -77,27 +109,15 @@ namespace Dman.SaveSystem
             return new JsonSaveSystemObjectSet(saveContextProvider, persistence);
         }
         
-        private void ThrowIfDisposed()
-        {
-            if (_isDisposed) throw new ObjectDisposedException(nameof(JsonSaveSystemObjectSet));
-        }
-
-        public void Dispose()
-        {
-            if (_isDisposed) return;
-            _isDisposed = true;
-            _keepAliveContainer.SetReadyToDispose();
-            _keepAliveInternalHandle?.Dispose();
-        }
-        
-        /// <summary>
-        /// called once all keep-alive handles are disposed, and this object set is also disposed.
-        /// </summary>
-        private void OnKeepAliveDisposed()
+        public void PersistAllAndDispose()
         {
             SavePersistence.PersistAll(logInfo: true);
             _saveContextProvider.Dispose();
         }
+        
+        internal void DisposeWithoutPersisting()
+        {
+            _saveContextProvider.Dispose();
+        }
     }
-    
 }

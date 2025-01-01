@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Dman.SaveSystem;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 using static Dman.Foundation.Tests.SaveDataTestUtils;
 
 namespace Dman.Foundation.Tests
@@ -160,7 +163,7 @@ namespace Dman.Foundation.Tests
         }
         
         [Test]
-        public void WhenLoadsTypeDifferentThanSaved_Errors()
+        public void WhenLoadsTypeDifferentThanSaved_LogsError()
         {
             // arrange
             var savedData = new Dog
@@ -177,14 +180,12 @@ namespace Dman.Foundation.Tests
             saveDataContext.Save("dogg", savedData);
             saveDataContextProvider.PersistContext("test");
             
-            var loadAction = new TestDelegate(() =>
-            {
-                saveDataContextProvider.LoadContext("test");
-                saveDataContext.TryLoad("dogg", out Cat _);
-            });
+            saveDataContextProvider.LoadContext("test");
+            var didLoad = saveDataContext.TryLoad("dogg", out Cat _);
             
             // assert
-            Assert.Throws<SaveDataException>(loadAction);
+            Assert.IsFalse(didLoad, "The load should fail");
+            LogAssert.Expect(LogType.Error, new Regex(@"Failed to load data of type Dman\.Foundation\.Tests\.Cat for key dogg\. Raw json"));
         }
 
         

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Dman.SaveSystem.Converters;
+using Dman.Utilities.Logger;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -225,9 +226,11 @@ namespace Dman.SaveSystem
                 {
                     value = existing.ToObject(objectType, _serializer);
                 }
-                catch (JsonSerializationException e)
+                catch (JsonException)
                 {
-                    throw new SaveDataException($"Failed to load data for key {key} of type {objectType}", e);
+                    Log.Error($"Failed to load data of type {objectType} for key {key}. Raw json: {existing}");
+                    value = default;
+                    return false;
                 }
                 return true;
             }
