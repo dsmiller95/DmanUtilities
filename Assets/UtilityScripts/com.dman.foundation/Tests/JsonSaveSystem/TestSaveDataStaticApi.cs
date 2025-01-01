@@ -60,6 +60,18 @@ namespace Dman.Foundation.Tests
         }
         
         [Test]
+        public void WhenSetsString_HasKeySwitchesToTrue()
+        {
+            Assert.IsFalse(SimpleSave.HasKey("testKey"));
+            
+            SimpleSave.SetString("testKey", "testValue");
+            Assert.IsTrue(SimpleSave.HasKey("testKey"));
+            
+            SimpleSave.DeleteKey("testKey");
+            Assert.IsFalse(SimpleSave.HasKey("testKey"));
+        }
+        
+        [Test]
         public void WhenSetsVector2_CanGetVector2()
         {
             SimpleSave.Set("testKey", new Vector2(1, 2));
