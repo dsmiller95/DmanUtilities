@@ -171,7 +171,7 @@ namespace Dman.Foundation.Tests
             };
             
             // act
-            using var stringStore = new StringStorePersistSaveData();
+            using var stringStore = new StringStorePersistText();
             var saveDataContextProvider = SaveDataContextProvider.CreateAndPersistTo(stringStore);
             var saveDataContext = saveDataContextProvider.GetContext("test");
             saveDataContext.Save("dogg", savedData);
@@ -319,7 +319,7 @@ namespace Dman.Foundation.Tests
             };
             
             // act
-            using var stringStore = new StringStorePersistSaveData();
+            using var stringStore = new StringStorePersistText();
             var saveDataContextProvider = SaveDataContextProvider.CreateAndPersistTo(stringStore);
             var contextOne = saveDataContextProvider.GetContext("test");
             contextOne.Save("dogg", savedData);

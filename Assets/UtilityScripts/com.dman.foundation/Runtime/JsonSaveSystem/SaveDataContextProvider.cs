@@ -10,7 +10,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace Dman.SaveSystem
 {
-    public interface IPersistSaveData
+    public interface IPersistText
     {
         public TextWriter WriteTo(string contextKey);
         public void OnWriteComplete(string contextKey);
@@ -20,18 +20,18 @@ namespace Dman.SaveSystem
     
     public class SaveDataContextProvider : ISaveDataContextProvider, ISaveDataPersistence, IDisposable
     {
-        private readonly IPersistSaveData _persistence;
+        private readonly IPersistText _persistence;
         private readonly string _rootFolderPath;
         private Dictionary<string, SaveDataContextHandle> saveContexts = new Dictionary<string, SaveDataContextHandle>();
         private readonly JsonSerializer _serializer;
         public bool IsDisposed { get; private set; } = false;
 
-        public static SaveDataContextProvider CreateAndPersistTo(IPersistSaveData persistence)
+        public static SaveDataContextProvider CreateAndPersistTo(IPersistText persistence)
         {
             return new SaveDataContextProvider(persistence);
         } 
         
-        private SaveDataContextProvider(IPersistSaveData persistence)
+        private SaveDataContextProvider(IPersistText persistence)
         {
             _persistence = persistence;
             var serializerSettings = new JsonSerializerSettings

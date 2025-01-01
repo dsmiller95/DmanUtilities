@@ -252,7 +252,7 @@ namespace Dman.Foundation.Tests
             var savedData = new SerializableDog(1, "Fido the Third");
             
             // act
-            using var stringStore = new StringStorePersistSaveData();
+            using var stringStore = new StringStorePersistText();
             var saveDataContextProvider = SaveDataContextProvider.CreateAndPersistTo(stringStore);
             var saveDataContext = saveDataContextProvider.GetContext("test");
             saveDataContext.Save("dogg", savedData);
@@ -361,7 +361,7 @@ namespace Dman.Foundation.Tests
             savedData.name = "can't save me";
             
             // act
-            using var stringStore = new StringStorePersistSaveData();
+            using var stringStore = new StringStorePersistText();
             var saveDataContextProvider = SaveDataContextProvider.CreateAndPersistTo(stringStore);
             var saveDataContext = saveDataContextProvider.GetContext("test");
             

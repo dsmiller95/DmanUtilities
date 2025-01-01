@@ -25,7 +25,7 @@ namespace Dman.Foundation.Tests
             string serializedString,
             params (string key, object data)[] datas)
         {
-            using var stringStore = StringStorePersistSaveData.WithFiles((contextName, serializedString));
+            using var stringStore = StringStorePersistText.WithFiles((contextName, serializedString));
             var saveDataContextProvider = SaveDataContextProvider.CreateAndPersistTo(stringStore);
             saveDataContextProvider.LoadContext(contextName);
             var saveDataContext = saveDataContextProvider.GetContext(contextName);
@@ -40,7 +40,7 @@ namespace Dman.Foundation.Tests
             string contextName,
             string serializedString)
         {
-            using var stringStore = StringStorePersistSaveData.WithFiles((contextName, serializedString));
+            using var stringStore = StringStorePersistText.WithFiles((contextName, serializedString));
             var saveDataContextProvider = SaveDataContextProvider.CreateAndPersistTo(stringStore);
             saveDataContextProvider.LoadContext(contextName);
             var saveDataContext = saveDataContextProvider.GetContext(contextName);
@@ -53,7 +53,7 @@ namespace Dman.Foundation.Tests
 
         public static bool TryLoad<T>(string serializedString, string key, out T data)
         {
-            using var stringStore = StringStorePersistSaveData.WithFiles(("tmp", serializedString));
+            using var stringStore = StringStorePersistText.WithFiles(("tmp", serializedString));
             var saveDataContextProvider = SaveDataContextProvider.CreateAndPersistTo(stringStore);
             saveDataContextProvider.LoadContext("tmp");
             var saveDataContext = saveDataContextProvider.GetContext("tmp");
@@ -65,7 +65,7 @@ namespace Dman.Foundation.Tests
             bool assertInternalRoundTrip = true, 
             params (string key, object data)[] datas)
         {
-            using var stringStore = new StringStorePersistSaveData();
+            using var stringStore = new StringStorePersistText();
             var saveDataContextProvider = SaveDataContextProvider.CreateAndPersistTo(stringStore);
             var saveDataContext = saveDataContextProvider.GetContext(contextName);
             foreach (var (key, data) in datas)

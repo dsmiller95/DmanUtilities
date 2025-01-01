@@ -5,13 +5,13 @@ using System.Text;
 
 namespace Dman.SaveSystem
 {
-    public class StringStorePersistSaveData : IPersistSaveData, IDisposable
+    public class StringStorePersistText : IPersistText, IDisposable
     {
         private Dictionary<string, MemoryStream> _store = new Dictionary<string, MemoryStream>();
 
-        public static StringStorePersistSaveData WithFiles(params (string name, string contents)[] files)
+        public static StringStorePersistText WithFiles(params (string name, string contents)[] files)
         {
-            var res = new StringStorePersistSaveData();
+            var res = new StringStorePersistText();
             foreach (var (name, contents) in files)
             {
                 using var writer = res.WriteTo(name);

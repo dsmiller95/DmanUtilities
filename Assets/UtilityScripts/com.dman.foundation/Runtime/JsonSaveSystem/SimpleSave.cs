@@ -7,8 +7,8 @@ namespace Dman.SaveSystem
     {
         public static string SaveFileName { get; private set; }= "root";
 
-        private static ISaveDataContextProvider SaveFileProvider => SingletonLocator<ISaveDataContextProvider>.Instance;
-        private static ISaveDataPersistence SavePersistence => SingletonLocator<ISaveDataPersistence>.Instance;
+        private static ISaveDataContextProvider SaveFileProvider => JsonSaveSystemSingleton.GetContextProvider();
+        private static ISaveDataPersistence SavePersistence => JsonSaveSystemSingleton.GetPersistor();
         private static ISaveDataContext SaveFile => SaveFileProvider.GetContext(SaveFileName);
 
         public static void ChangeDefaultSaveFile(string newSaveFileName)

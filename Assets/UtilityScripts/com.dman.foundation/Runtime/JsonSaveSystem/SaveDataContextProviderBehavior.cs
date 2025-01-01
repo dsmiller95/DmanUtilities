@@ -13,7 +13,7 @@ namespace Dman.SaveSystem
     public class SaveDataContextProviderBehavior : MonoBehaviour, 
         ISaveDataBehavior,
         ISaveDataPersistence,
-        IPersistSaveData,
+        IPersistText,
         IAwakeEarly
     {
         [Tooltip("The root folder path is appended to the persistent data path to create the save file path")]
@@ -28,8 +28,8 @@ namespace Dman.SaveSystem
         
         public void AwakeEarly()
         {
-            var exiting = SingletonLocator<SaveDataContextProviderBehavior>.Instance;
-            if (exiting != null && exiting != this)
+            var existing = SingletonLocator<SaveDataContextProviderBehavior>.Instance;
+            if (existing != null && existing != this)
             {
                 Log.Warning("Duplicate SaveDataContextProviderBehavior detected, destroying the newly instantiated", this);
                 _isDestroyingDueToDuplicateSingleton = true;

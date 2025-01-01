@@ -39,6 +39,7 @@ namespace Dman.SaveSystem
             TryDispose();
         }
 
+        // TODO: may not need this. could just take an extra keep alive handle
         public void SetReadyToDispose()
         {
             if(_isDisposed) throw new ObjectDisposedException("KeepAliveContainer");
@@ -49,11 +50,10 @@ namespace Dman.SaveSystem
         private void TryDispose()
         {
             if(_isDisposed) return;
+            if (_totalKeptAlive > 0 || !_isReadyToDispose) return;
+            
             _isDisposed = true;
-            if (_totalKeptAlive <= 0 && _isReadyToDispose)
-            {
-                _onDispose();
-            }
+            _onDispose();
         }
 
         private class KeepAliveHandle : IKeepAliveHandle
