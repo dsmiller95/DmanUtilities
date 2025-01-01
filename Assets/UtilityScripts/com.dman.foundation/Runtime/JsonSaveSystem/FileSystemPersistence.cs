@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace Dman.SaveSystem
 {
-    public class FileSystemPersistenceTMPNAME : IPersistText
+    public class FileSystemPersistence : IPersistText
     {
         private readonly string _rootFolderPath;
 
-        public FileSystemPersistenceTMPNAME(string rootFolderPath)
+        public FileSystemPersistence(string rootFolderPath)
         {
             _rootFolderPath = rootFolderPath;
         }
