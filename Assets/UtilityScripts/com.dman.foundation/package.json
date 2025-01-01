@@ -1,6 +1,6 @@
 {
   "name": "com.dman.foundation",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "displayName": "Dman Foundation",
   "description": "A large collection of utilities and tools which integrate deeply into unity.",
   "unity": "2020.1",
