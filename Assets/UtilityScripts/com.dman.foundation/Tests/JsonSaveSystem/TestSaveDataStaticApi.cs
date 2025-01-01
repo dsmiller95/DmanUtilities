@@ -50,6 +50,16 @@ namespace Dman.Foundation.Tests
         }
         
         [Test]
+        public void WhenSetsFloat_CanGetFloat()
+        {
+            SimpleSave.SetFloat("testKey", 4.2f);
+            
+            var result = SimpleSave.GetFloat("testKey");
+            
+            Assert.AreEqual(4.2f, result);
+        }
+        
+        [Test]
         public void WhenSetsVector2_CanGetVector2()
         {
             SimpleSave.Set("testKey", new Vector2(1, 2));
