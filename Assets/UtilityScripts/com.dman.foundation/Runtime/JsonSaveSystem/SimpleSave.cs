@@ -19,6 +19,30 @@ namespace Dman.SaveSystem
         private static ISaveDataPersistence SavePersistence => JsonSaveSystemSingleton.GetPersistor();
         private static ISaveDataContext SaveFile => SaveFileProvider.GetContext(SaveFileName);
 
+        /// <summary>
+        /// Save the current file to disk.
+        /// </summary>
+        public static void Save()
+        {
+            SavePersistence.PersistContext(SaveFileName);
+        }
+        
+        /// <summary>
+        /// Load the current file from disk, overwriting any unsaved changes in memory.
+        /// </summary>
+        /// <remarks>
+        /// Loading happens automatically on first access. ForceLoad is required when loading changes made
+        /// to the file outside the SaveSystem apis during runtime. For example, edits in a text editor
+        /// or modifications made by other applications.
+        /// </remarks>
+        public static void Refresh()
+        {
+            SavePersistence.LoadContext(SaveFileName);
+        }
+        
+        /// <summary>
+        /// Change the save file currently written to. This will save the current file before switching, if different. 
+        /// </summary>
         public static void ChangeSaveFile(string newSaveFileName)
         {
             if (newSaveFileName == SaveFileName) return;
@@ -27,6 +51,10 @@ namespace Dman.SaveSystem
             Save();
             SaveFileName = newSaveFileName;
         }
+        
+        /// <summary>
+        /// Same as ChangeSaveFile, but sets to the default save file name.
+        /// </summary>
         public static void ChangeSaveFileToDefault() => ChangeSaveFile(JsonSaveSystemSingleton.DefaultSaveFileName);
         
         public static string GetString(string key, string defaultValue = "") => Get(key, defaultValue);
@@ -38,13 +66,22 @@ namespace Dman.SaveSystem
         public static float GetFloat(string key, float defaultValue = 0) => Get(key, defaultValue);
         public static void SetFloat(string key, float value) => Set(key, value);
         
+        /// <summary>
+        /// Get generic data. Supports JsonUtility style serializable types.
+        /// </summary>
+        /// <returns>
+        /// Data from the shared store, or <paramref name="defaultValue"/> if the data at <paramref name="key"/>
+        /// is not present or not deserializable into <typeparamref name="T"/>
+        /// </returns>
         public static T Get<T>(string key, T defaultValue = default)
         {
             if(!SaveFile.TryLoad(key, out T value)) return defaultValue;
 
             return value;
         }
-        
+        /// <summary>
+        /// Set generic data. Supports JsonUtility style serializable types.
+        /// </summary>
         public static void Set<T>(string key, T value)
         {
             SaveFile.Save(key, value);
@@ -63,11 +100,6 @@ namespace Dman.SaveSystem
         public static void DeleteAll()
         {
             SavePersistence.DeleteContext(SaveFileName);
-        }
-
-        public static void Save()
-        {
-            SavePersistence.PersistContext(SaveFileName);
         }
     }
 }

@@ -89,7 +89,7 @@ namespace Dman.Foundation.Tests
             var result = SimpleSave.GetString("testKey");
             
             Assert.AreEqual("", result);
-            LogAssert.Expect(LogType.Error,  new Regex("Failed to load data of type System.String for key testKey. Raw json"));
+            LogAssert.Expect(LogType.Error, new Regex("Failed to load data of type System.String for key testKey. Raw json"));
         }
         
         [Test]
@@ -203,6 +203,46 @@ namespace Dman.Foundation.Tests
             
             SimpleSave.ChangeSaveFile("newTestFile");
             Assert.AreEqual("testValue2", SimpleSave.GetString("testKey"));
+        }
+
+        /// <summary>
+        /// Write directly to the current save file, bypassing the save system
+        /// </summary>
+        private void SideWriteToFile(string fileContents)
+        {
+            var externalPersistence = new FileSystemPersistence(JsonSaveSystemSingleton.SaveFolderName);
+            using var writer = externalPersistence.WriteTo(JsonSaveSystemSingleton.DefaultSaveFileName);
+            writer.Write(fileContents);
+            writer.Close();
+        }
+        
+        [Test]
+        public void WhenSetsString_ThenExternalWriteToFile_ThenRefresh_GetsStringWrittenToFile()
+        {
+            SimpleSave.SetString("testKey", "testValue1295");
+
+            SideWriteToFile(@"{""testKey"":""testValueWrittenToFile""}");
+            
+            SimpleSave.Refresh();
+            var result = SimpleSave.GetString("testKey");
+            
+            Assert.AreEqual("testValueWrittenToFile", result);
+        }
+        
+        [Test]
+        public void WhenTryLoadFromMalformedFile_DoesNotLoad_LogsError()
+        {
+            SimpleSave.SetString("testKey", "testValue1295");
+
+            SideWriteToFile(@"{{testKey"":""testValueWrittenToFile""}");
+            
+            SimpleSave.Refresh();
+            var result = SimpleSave.GetString("testKey");
+            
+            Assert.AreEqual("testValue1295", result);
+            
+            LogAssert.Expect(LogType.Error, new Regex($"Failed to load data for context {JsonSaveSystemSingleton.DefaultSaveFileName}.json, malformed Json. Raw json:"));
+            LogAssert.Expect(LogType.Exception, new Regex("JsonReaderException: Invalid property identifier character: {"));
         }
     }
 }

@@ -28,11 +28,28 @@ namespace Dman.SaveSystem
         public ISaveDataContext GetContext(string contextKey);
     }
 
+    /// <summary>
+    /// Manages the relationship between in-memory context data and the underlying persistence model.
+    /// </summary>
     public interface ISaveDataPersistence
     {
+        /// <summary>
+        /// Save in memory data to overwrite the underlying persistence model.
+        /// </summary>
         public void PersistContext(string contextKey);
+        /// <summary>
+        /// Load from underlying persistence model to overwrite in memory data.
+        /// </summary>
         public void LoadContext(string contextKey);
+        /// <summary>
+        /// Deletes from both the underlying persistence model and in memory data.
+        /// </summary>
+        /// <param name="contextKey"></param>
         public void DeleteContext(string contextKey);
+        /// <summary>
+        /// All contexts that are currently present in memory
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<string> AllContexts();
     }
 

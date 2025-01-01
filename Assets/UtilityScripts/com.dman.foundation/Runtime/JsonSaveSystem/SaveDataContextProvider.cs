@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using UnityEngine;
 
 namespace Dman.SaveSystem
 {
@@ -100,8 +101,16 @@ namespace Dman.SaveSystem
             using var reader = _persistence.ReadFrom(contextKey);
             if (reader == null) return contextHandle;
             using var jsonReader = new JsonTextReader(reader);
-            var data = JObject.Load(jsonReader);
-            contextHandle.SwapInternalHandle(SaveDataContext.Loaded(data, _serializer));
+            try
+            {
+                var data = JObject.Load(jsonReader);
+                contextHandle.SwapInternalHandle(SaveDataContext.Loaded(data, _serializer));
+            }
+            catch (JsonException e)
+            {
+                Log.Error($"Failed to load data for context {contextKey}.json, malformed Json. Raw json: {reader.ReadToEnd()}");
+                Debug.LogException(e);
+            }
             return contextHandle;
         }
         
