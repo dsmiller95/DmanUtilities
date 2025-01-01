@@ -56,6 +56,15 @@ namespace Dman.SaveSystem
             }
         }
 
+        public void DeleteAll()
+        {
+            foreach (var memoryStream in _store.Values)
+            {
+                memoryStream.Dispose();
+            }
+            _store.Clear();
+        }
+
         public void Dispose()
         {
             foreach (var memoryStream in _store.Values)

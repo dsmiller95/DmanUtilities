@@ -7,10 +7,13 @@ namespace Dman.SaveSystem
     public class FileSystemPersistence : IPersistText
     {
         private readonly string _rootFolderPath;
+        private readonly string _directoryPath;
 
         public FileSystemPersistence(string rootFolderPath)
         {
             _rootFolderPath = rootFolderPath;
+            _directoryPath = Path.Combine(Application.persistentDataPath, _rootFolderPath);
+            
         }
         
         public TextWriter WriteTo(string contextKey)
@@ -45,17 +48,25 @@ namespace Dman.SaveSystem
                 File.Delete(filePath);
             }
         }
-        
+
+        // TODO: this is dangerous. what if the directory has other stuff.. like our game executables?
+        public void DeleteAll()
+        {
+            if (Directory.Exists(_directoryPath))
+            {
+                Directory.Delete(_directoryPath, recursive: true);
+            }
+        }
+
         private string EnsureSaveFilePath(string contextKey)
         {
             var fileName = $"{contextKey}.json";
-            var directoryPath = Path.Combine(Application.persistentDataPath, _rootFolderPath);
-            if (!Directory.Exists(directoryPath))
+            if (!Directory.Exists(_directoryPath))
             {
-                Directory.CreateDirectory(directoryPath);
+                Directory.CreateDirectory(_directoryPath);
             }
             
-            var saveFile = Path.Combine(directoryPath, fileName);
+            var saveFile = Path.Combine(_directoryPath, fileName);
             return saveFile;
         }
     }

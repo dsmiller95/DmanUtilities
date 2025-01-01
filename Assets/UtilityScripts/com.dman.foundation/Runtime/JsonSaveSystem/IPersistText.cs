@@ -12,5 +12,6 @@ namespace Dman.SaveSystem
         public void OnWriteComplete(string contextKey);
         [CanBeNull] public TextReader ReadFrom(string contextKey);
         public void Delete(string contextKey);
+        public void DeleteAll();
     }
 }

@@ -6,8 +6,8 @@ namespace Dman.SaveSystem
 {
     public static class JsonSaveSystemSingleton
     {
-        public static string SaveFolderName => Settings.saveFolderName;
-        public static string DefaultSaveFileName => Settings.defaultSaveFileName;
+        public static string SaveFolderName => JsonSaveSystemSettings.Singleton.SaveFolderName;
+        public static string DefaultSaveFileName => JsonSaveSystemSettings.Singleton.DefaultSaveFileName;
         
         private static JsonSaveSystemSettings Settings => _settings ??= GetSettingsObject();
         private static JsonSaveSystemSettings _settings; 
@@ -103,7 +103,7 @@ namespace Dman.SaveSystem
         
         public JsonSaveSystemObjectSet(JsonSaveSystemSettings forSettings)
         {
-            var persistence = new FileSystemPersistence(forSettings.saveFolderName);
+            var persistence = new FileSystemPersistence(forSettings.SaveFolderName);
             _saveContextProvider = SaveDataContextProvider.CreateAndPersistTo(persistence);
         }
         

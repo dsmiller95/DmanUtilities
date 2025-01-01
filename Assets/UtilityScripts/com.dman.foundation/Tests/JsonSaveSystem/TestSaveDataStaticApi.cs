@@ -11,10 +11,8 @@ namespace Dman.Foundation.Tests
         [OneTimeSetUp]
         public void Init()
         {
-            var settings = ScriptableObject.CreateInstance<JsonSaveSystemSettings>();
-            settings.saveFolderName = "TestFolder";
-            settings.defaultSaveFileName = "rootTest";
-            JsonSaveSystemSingleton.ForceOverrideSettingsObject(settings);
+            var settings = JsonSaveSystemSettings.Create("TestFolder", "rootTest");
+            JsonSaveSystemSettings.ForceOverrideSettingsObject(settings, suppressWarningDangerously: true);
         }
 
         [SetUp]
@@ -26,7 +24,8 @@ namespace Dman.Foundation.Tests
         [TearDown]
         public void CleanUp()
         {
-            JsonSaveSystemSingleton.GetPersistor().DeleteAll();
+            SimpleSave.TextPersistence.DeleteAll();
+            SimpleSave.DeleteAll();
         }
         
         [Test]
@@ -141,7 +140,7 @@ namespace Dman.Foundation.Tests
         {
             SimpleSave.SetString("testKey", "testValue");
             
-            JsonSaveSystemSingleton.EmulateForcedQuit();
+            SimpleSave.EmulateForcedQuit();
             
             Assert.AreEqual("", SimpleSave.GetString("testKey"));
         }
@@ -151,7 +150,7 @@ namespace Dman.Foundation.Tests
         {
             SimpleSave.SetString("testKey", "testValue");
             
-            JsonSaveSystemSingleton.EmulateManagedApplicationQuit();
+            SimpleSave.EmulateManagedApplicationQuit();
             
             Assert.AreEqual("testValue", SimpleSave.GetString("testKey"));
         }
@@ -162,7 +161,7 @@ namespace Dman.Foundation.Tests
             SimpleSave.SetString("testKey", "testValue");
             
             SimpleSave.Save();
-            JsonSaveSystemSingleton.EmulateForcedQuit();
+            SimpleSave.EmulateForcedQuit();
             
             Assert.AreEqual("testValue", SimpleSave.GetString("testKey"));
         }
@@ -174,7 +173,7 @@ namespace Dman.Foundation.Tests
             
             SimpleSave.Save();
             SimpleSave.SetString("testKey", "testValue2");
-            JsonSaveSystemSingleton.EmulateForcedQuit();
+            SimpleSave.EmulateForcedQuit();
             
             Assert.AreEqual("testValue1", SimpleSave.GetString("testKey"));
         }
@@ -210,8 +209,8 @@ namespace Dman.Foundation.Tests
         /// </summary>
         private void SideWriteToFile(string fileContents)
         {
-            var externalPersistence = new FileSystemPersistence(JsonSaveSystemSingleton.SaveFolderName);
-            using var writer = externalPersistence.WriteTo(JsonSaveSystemSingleton.DefaultSaveFileName);
+            var externalPersistence = new FileSystemPersistence(SimpleSave.SaveFolderName);
+            using var writer = externalPersistence.WriteTo(SimpleSave.SaveFileName);
             writer.Write(fileContents);
             writer.Close();
         }
@@ -240,9 +239,9 @@ namespace Dman.Foundation.Tests
             var result = SimpleSave.GetString("testKey");
             
             Assert.AreEqual("testValue1295", result);
-            
-            LogAssert.Expect(LogType.Error, new Regex($"Failed to load data for context {JsonSaveSystemSingleton.DefaultSaveFileName}.json, malformed Json. Raw json:"));
-            LogAssert.Expect(LogType.Exception, new Regex("JsonReaderException: Invalid property identifier character: {"));
+
+            LogAssert.Expect(LogType.Error, new Regex($@"Failed to load data for {SimpleSave.SaveFolderName}/{SimpleSave.SaveFileName}\.json, malformed Json"));
+            LogAssert.Expect(LogType.Exception, new Regex(@"JsonReaderException: Invalid property identifier character: \{"));
         }
     }
 }

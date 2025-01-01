@@ -1,5 +1,12 @@
-using System;
-using Dman.Utilities;
+using System.Collections.Generic;
+using Dman.SaveSystem.Converters;
+using Dman.Utilities.Logger;
+using JetBrains.Annotations;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
+using UnityEngine;
 
 namespace Dman.SaveSystem
 {
@@ -9,25 +16,49 @@ namespace Dman.SaveSystem
     public static class SimpleSave
     {
         /// <summary>
-        /// The save file name used by SimpleSave. Can be different from the default.
+        /// The save file name used by SimpleSave. Can be changed from the default.
         /// </summary>
         public static string SaveFileName
         {
-            get => _cachedSaveFileName ??= JsonSaveSystemSingleton.DefaultSaveFileName;
+            get => _cachedSaveFileName ??= Settings.DefaultSaveFileName;
             private set => _cachedSaveFileName = value;
         }
         private static string _cachedSaveFileName;
 
-        private static ISaveDataContextProvider SaveFileProvider => JsonSaveSystemSingleton.GetContextProvider();
-        private static ISaveDataPersistence SavePersistence => JsonSaveSystemSingleton.GetPersistor();
-        private static ISaveDataContext SaveFile => SaveFileProvider.GetContext(SaveFileName);
+        public static string SaveFolderName => Settings.SaveFolderName;
+        
+        [NotNull]
+        private static SimpleSaveFile CurrentSaveData
+        {
+            get
+            {
+                if (_currentSaveData == null)
+                {
+                    _currentSaveData = LoadFrom(SaveFileName);
+                    // if Load did not load any data, then create empty data
+                    _currentSaveData ??= SimpleSaveFile.Empty(DefaultSerializer);
+                }
+                return _currentSaveData;
+            }
+            set => _currentSaveData = value;
+        }
+        private static SimpleSaveFile _currentSaveData;
+
+        private static JsonSerializer DefaultSerializer => _defaultSerializer ??= JsonSerializer.CreateDefault(GetSerializerSettings());
+        private static JsonSerializer _defaultSerializer;
+
+        public static IPersistText TextPersistence => _textPersistence ??= new FileSystemPersistence(SaveFolderName);
+        private static IPersistText _textPersistence;
+        
+        private static JsonSaveSystemSettings Settings => _settings ??= JsonSaveSystemSettings.GetSingleton();
+        private static JsonSaveSystemSettings _settings; 
 
         /// <summary>
         /// Save the current file to disk.
         /// </summary>
         public static void Save()
         {
-            SavePersistence.PersistContext(SaveFileName);
+            PersistFile(CurrentSaveData, SaveFileName);
         }
         
         /// <summary>
@@ -40,7 +71,11 @@ namespace Dman.SaveSystem
         /// </remarks>
         public static void Refresh()
         {
-            SavePersistence.LoadContext(SaveFileName);
+            var loadedData = LoadFrom(SaveFileName);
+            if(loadedData != null)
+            {
+                CurrentSaveData = loadedData;
+            }
         }
         
         /// <summary>
@@ -53,12 +88,14 @@ namespace Dman.SaveSystem
             // save the old file before switching
             Save();
             SaveFileName = newSaveFileName;
+            // load the new save file after switching
+            Refresh();
         }
         
         /// <summary>
         /// Same as ChangeSaveFile, but sets to the default save file name.
         /// </summary>
-        public static void ChangeSaveFileToDefault() => ChangeSaveFile(JsonSaveSystemSingleton.DefaultSaveFileName);
+        public static void ChangeSaveFileToDefault() => ChangeSaveFile(Settings.DefaultSaveFileName);
         
         public static string GetString(string key, string defaultValue = "") => Get(key, defaultValue);
         public static void SetString(string key, string value) => Set(key, value);
@@ -78,7 +115,7 @@ namespace Dman.SaveSystem
         /// </returns>
         public static T Get<T>(string key, T defaultValue = default)
         {
-            if(!SaveFile.TryLoad(key, out T value)) return defaultValue;
+            if(!CurrentSaveData.TryLoad(key, out T value)) return defaultValue;
 
             return value;
         }
@@ -87,22 +124,105 @@ namespace Dman.SaveSystem
         /// </summary>
         public static void Set<T>(string key, T value)
         {
-            SaveFile.Save(key, value);
+            CurrentSaveData.Save(key, value);
         }
 
         public static bool HasKey(string key)
         {
-            return SaveFile.HasKey(key);
+            return CurrentSaveData.HasKey(key);
         }
 
         public static void DeleteKey(string key)
         {
-            SaveFile.DeleteKey(key);
+            CurrentSaveData.DeleteKey(key);
         }
 
         public static void DeleteAll()
         {
-            SavePersistence.DeleteContext(SaveFileName);
+            CurrentSaveData = SimpleSaveFile.Empty(DefaultSerializer);
+            string file = SaveFileName;
+            TextPersistence.Delete(file);
+        }
+
+        internal static void EmulateForcedQuit()
+        {
+            _currentSaveData = null;
+        }
+
+        internal static void EmulateManagedApplicationQuit()
+        {
+            Save();
+            _currentSaveData = null;
+        }
+        
+        
+        [RuntimeInitializeOnLoadMethod]
+        private static void RunOnStart()
+        {
+            Application.quitting += OnApplicationQuit;
+        }
+
+        private static void OnApplicationQuit()
+        {
+            Save();
+        }
+
+        [CanBeNull]
+        private static SimpleSaveFile LoadFrom(string file)
+        {
+            using var reader = TextPersistence.ReadFrom(file);
+            if (reader == null) return null;
+            using var jsonReader = new JsonTextReader(reader);
+            
+            try
+            {
+                var data = JObject.Load(jsonReader);
+                return SimpleSaveFile.Loaded(data, DefaultSerializer);
+            }
+            catch (JsonException e)
+            {
+                using var reader2 = TextPersistence.ReadFrom(file);
+                Log.Error($"Failed to load data for {SaveFolderName}/{file}.json, malformed Json. Raw json: {reader2?.ReadToEnd()}");
+                Debug.LogException(e);
+                return null;
+            }
+        }
+        
+        private static void PersistFile(SimpleSaveFile data, string file)
+        {
+            using var writer = TextPersistence.WriteTo(file);
+            using var jsonWriter = new JsonTextWriter(writer);
+            DefaultSerializer.Serialize(jsonWriter, data.SavedToken);
+            TextPersistence.OnWriteComplete(file);
+        }
+        
+        private static JsonSerializerSettings GetSerializerSettings()
+        {
+            return new JsonSerializerSettings
+            {
+                ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+                ContractResolver = new UnitySerializationCompatibleContractResolver
+                {
+                    NamingStrategy = new CamelCaseNamingStrategy
+                    {
+                        OverrideSpecifiedNames = false
+                    },
+                    IgnoreSerializableAttribute = false,
+                },
+                ReferenceLoopHandling = ReferenceLoopHandling.Error,
+                NullValueHandling = NullValueHandling.Ignore,
+                Formatting = Formatting.Indented,
+                TypeNameHandling = TypeNameHandling.Auto,
+                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+                Converters = new List<JsonConverter>
+                {
+                    new StringEnumConverter(),
+                    new Vector3IntConverter(),
+                    new Vector2IntConverter(),
+                    new UnityJsonUtilityJsonConverter(),
+                },
+                MissingMemberHandling = MissingMemberHandling.Error,
+            };
         }
     }
 }
