@@ -1,4 +1,5 @@
 using System;
+using UnityEditor;
 using UnityEngine;
 
 namespace Dman.SaveSystem
@@ -64,6 +65,11 @@ namespace Dman.SaveSystem
         private static JsonSaveSystemSettings GetSettingsObject()
         {
             var settingsList = Resources.LoadAll<JsonSaveSystemSettings>("JsonSaveSystemSettings");
+            if(settingsList.Length == 0)
+            {
+                var newSettings = ScriptableObject.CreateInstance<JsonSaveSystemSettings>();
+                return newSettings;
+            }
             if (settingsList.Length != 1)
             {
                 Debug.LogWarning("The number of PlayFabSharedSettings objects should be 1: " + settingsList.Length);
@@ -71,6 +77,15 @@ namespace Dman.SaveSystem
             return settingsList[0];
         }
 
+        [MenuItem("SaveSystem/Create Json Save System Settings")]
+        private static void CreateSettingsObject()
+        {
+            var newSettings = ScriptableObject.CreateInstance<JsonSaveSystemSettings>();
+            AssetDatabase.CreateFolder("Assets", "Resources");
+            AssetDatabase.CreateAsset(newSettings, "Assets/Resources/JsonSaveSystemSettings.asset");
+            AssetDatabase.SaveAssets();
+        }
+        
         [RuntimeInitializeOnLoadMethod]
         private static void RunOnStart()
         {

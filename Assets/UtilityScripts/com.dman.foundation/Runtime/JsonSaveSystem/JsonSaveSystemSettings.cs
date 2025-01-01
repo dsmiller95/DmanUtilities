@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Dman.SaveSystem
 {
-    [CreateAssetMenu(fileName = "JsonSaveSystemSettings", menuName = "Utility/JsonSaveSystemSettings")]
+    [CreateAssetMenu(fileName = "JsonSaveSystemSettings", menuName = "SaveSystem/JsonSaveSystemSettings")]
     public class JsonSaveSystemSettings : ScriptableObject
     {
         [Header("All values are read on first use of save system. Changes during runtime are ignored.")]
