@@ -170,6 +170,9 @@ namespace Dman.SaveSystem
 
             public void Save<T>(string key, T value) => WrappedHandle.Save(key, value);
             public bool TryLoad(string key, out object value, Type type) => WrappedHandle.TryLoad(key, out value, type);
+            public bool HasKey(string key) => WrappedHandle.HasKey(key);
+            public bool DeleteKey(string key) => WrappedHandle.DeleteKey(key);
+
             public bool IsAlive => WrappedHandle.IsAlive;
             public void Dispose() => WrappedHandle.Dispose();
         }
@@ -179,6 +182,7 @@ namespace Dman.SaveSystem
             private readonly JObject _data;
             public JToken SavedToken => _data;
             private readonly JsonSerializer _serializer;
+
             public bool IsAlive => !isDisposed;
             private bool isDisposed = false;
             
@@ -226,6 +230,17 @@ namespace Dman.SaveSystem
                     throw new SaveDataException($"Failed to load data for key {key} of type {objectType}", e);
                 }
                 return true;
+            }
+
+            public bool HasKey(string key)
+            {
+                if(isDisposed) throw new ObjectDisposedException(nameof(SaveDataContext));
+                return _data.ContainsKey(key);
+            }
+            
+            public bool DeleteKey(string key)
+            {
+                return _data.Remove(key);
             }
             
             public void Dispose()

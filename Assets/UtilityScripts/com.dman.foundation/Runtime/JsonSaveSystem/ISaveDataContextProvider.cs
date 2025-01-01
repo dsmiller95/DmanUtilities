@@ -63,6 +63,14 @@ namespace Dman.SaveSystem
     {
         public void Save<T>(string key, T value);
         public bool TryLoad(string key, out object value, Type type);
+        public bool HasKey(string key);
+        
+        /// <summary>
+        /// Delete the given key and its associated data
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns>true if key existed, false if key was not present</returns>
+        public bool DeleteKey(string key);
         /// <summary>
         /// returns true if this save data context is valid and can be used. Otherwise, false.
         /// </summary>
