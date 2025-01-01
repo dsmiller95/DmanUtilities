@@ -84,7 +84,7 @@ namespace Dman.SaveSystem
         
         private static void OnAllKeepAliveDisposed()
         {
-            SaveSystemObjectSet.PersistAllAndDispose();
+            _saveSystemObjectSet?.PersistAllAndDispose();
         }
     }
     
