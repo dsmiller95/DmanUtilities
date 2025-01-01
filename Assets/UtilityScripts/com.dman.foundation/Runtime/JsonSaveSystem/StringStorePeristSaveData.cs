@@ -10,7 +10,7 @@ namespace Dman.SaveSystem
     /// </summary>
     public class StringStorePersistText : IPersistText, IDisposable
     {
-        private Dictionary<string, MemoryStream> _store = new Dictionary<string, MemoryStream>();
+        private readonly Dictionary<string, MemoryStream> _store = new Dictionary<string, MemoryStream>();
 
         public static StringStorePersistText WithFiles(params (string name, string contents)[] files)
         {

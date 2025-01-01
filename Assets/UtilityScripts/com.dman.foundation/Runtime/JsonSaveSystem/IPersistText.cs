@@ -3,6 +3,9 @@ using JetBrains.Annotations;
 
 namespace Dman.SaveSystem
 {
+    /// <summary>
+    /// Generic interface for saving and loading text
+    /// </summary>
     public interface IPersistText
     {
         public TextWriter WriteTo(string contextKey);

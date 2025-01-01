@@ -6,7 +6,7 @@ namespace Dman.SaveSystem
     public class JsonSaveSystemSettings : ScriptableObject
     {
         [Header("All values are read on first use of save system. Changes during runtime are ignored.")]
-        public string saveFolderName = "Saves";
+        public string saveFolderName = "SaveContexts";
         public string defaultSaveFileName = "root";
     }
 }

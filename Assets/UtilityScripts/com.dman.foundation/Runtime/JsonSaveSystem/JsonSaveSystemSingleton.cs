@@ -12,7 +12,7 @@ namespace Dman.SaveSystem
         private static JsonSaveSystemSettings Settings => _settings ??= GetSettingsObject();
         private static JsonSaveSystemSettings _settings; 
 
-        private static JsonSaveSystemObjectSet SaveSystemObjectSet => _saveSystemObjectSet ??= JsonSaveSystemObjectSet.Create(Settings);
+        private static JsonSaveSystemObjectSet SaveSystemObjectSet => _saveSystemObjectSet ??= new JsonSaveSystemObjectSet(Settings);
         private static JsonSaveSystemObjectSet _saveSystemObjectSet;
 
         private static KeepAliveContainer KeepAlive { get; } = new KeepAliveContainer(OnAllKeepAliveDisposed);
@@ -37,8 +37,8 @@ namespace Dman.SaveSystem
             _settings = settings;
             if (_saveSystemObjectSet != null)
             {
-                _saveSystemObjectSet.PersistAllAndDispose();
-                _saveSystemObjectSet = JsonSaveSystemObjectSet.Create(settings);
+                _saveSystemObjectSet.DisposeAndPersistAll();
+                _saveSystemObjectSet = new JsonSaveSystemObjectSet(settings);
             }
         }
 
@@ -58,7 +58,7 @@ namespace Dman.SaveSystem
         /// </summary>
         internal static void EmulateManagedApplicationQuit()
         {
-            _saveSystemObjectSet.PersistAllAndDispose();
+            _saveSystemObjectSet.DisposeAndPersistAll();
             _saveSystemObjectSet = null;
         }
         
@@ -99,7 +99,7 @@ namespace Dman.SaveSystem
         
         private static void OnAllKeepAliveDisposed()
         {
-            _saveSystemObjectSet?.PersistAllAndDispose();
+            _saveSystemObjectSet?.DisposeAndPersistAll();
         }
     }
     
@@ -109,22 +109,14 @@ namespace Dman.SaveSystem
         public ISaveDataContextProvider ContextProvider => _saveContextProvider;
 
         private readonly SaveDataContextProvider _saveContextProvider;
-        private IPersistText _persistence;
         
-        private JsonSaveSystemObjectSet(SaveDataContextProvider saveContextProvider, IPersistText persistence)
-        {
-            _saveContextProvider = saveContextProvider;
-            _persistence = persistence;
-        }
-
-        public static JsonSaveSystemObjectSet Create(JsonSaveSystemSettings forSettings)
+        public JsonSaveSystemObjectSet(JsonSaveSystemSettings forSettings)
         {
             var persistence = new FileSystemPersistence(forSettings.saveFolderName);
-            var saveContextProvider = SaveDataContextProvider.CreateAndPersistTo(persistence);
-            return new JsonSaveSystemObjectSet(saveContextProvider, persistence);
+            _saveContextProvider = SaveDataContextProvider.CreateAndPersistTo(persistence);
         }
         
-        public void PersistAllAndDispose()
+        public void DisposeAndPersistAll()
         {
             SavePersistence.PersistAll(logInfo: true);
             _saveContextProvider.Dispose();

@@ -14,8 +14,7 @@ namespace Dman.SaveSystem
     public class SaveDataContextProvider : ISaveDataContextProvider, ISaveDataPersistence, IDisposable
     {
         private readonly IPersistText _persistence;
-        private readonly string _rootFolderPath;
-        private Dictionary<string, SaveDataContextHandle> saveContexts = new Dictionary<string, SaveDataContextHandle>();
+        private readonly Dictionary<string, SaveDataContextHandle> _saveContexts = new Dictionary<string, SaveDataContextHandle>();
         private readonly JsonSerializer _serializer;
         public bool IsDisposed { get; private set; } = false;
 
@@ -116,13 +115,13 @@ namespace Dman.SaveSystem
         public IEnumerable<string> AllContexts()
         {
             if(IsDisposed) throw new ObjectDisposedException(nameof(SaveDataContextProvider));
-            return saveContexts.Keys;
+            return _saveContexts.Keys;
         }
         
         [CanBeNull]
         private SaveDataContextHandle GetContextInternal(string contextKey)
         {
-            if (saveContexts.TryGetValue(contextKey, out SaveDataContextHandle context))
+            if (_saveContexts.TryGetValue(contextKey, out SaveDataContextHandle context))
             {
                 return context;
             }
@@ -133,7 +132,7 @@ namespace Dman.SaveSystem
         private SaveDataContextHandle CreateContextInternal(string contextKey)
         {
             var context = new SaveDataContextHandle(SaveDataContext.Empty(_serializer));
-            saveContexts[contextKey] = context;
+            _saveContexts[contextKey] = context;
             return context;
         }
 
@@ -150,11 +149,11 @@ namespace Dman.SaveSystem
         {
             if(IsDisposed) return;
             IsDisposed = true;
-            foreach (SaveDataContextHandle context in saveContexts.Values)
+            foreach (SaveDataContextHandle context in _saveContexts.Values)
             {
                 context.Dispose();
             }
-            saveContexts.Clear();
+            _saveContexts.Clear();
         }
 
         /// <summary>
