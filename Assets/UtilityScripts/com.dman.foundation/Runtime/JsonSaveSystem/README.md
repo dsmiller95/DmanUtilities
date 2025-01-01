@@ -12,11 +12,57 @@ Add a list of Contexts which you want the save system to save and load from. For
 will contain a single key. for example, "Root". use this save context name to load save contexts
 in the rest of the app.
 
-## Usage Example
-
+## Simple usage example
 
 This script will maintain a list of strings that have been seen, and save them to the save system.
 The "seen" strings can be queried from outside, of managed with logic contained to this class.
+
+```csharp
+public class SomethingThatSavesData : MonoBehaviour
+{
+    private bool HasSeen(string thing)
+    {
+        var key = _saveKeyRoot + "_" + "set";
+        var seenSet = SimpleSave.Get<List<string>>(key);
+        if(seenSet != null)
+        {
+            return seenSet.Contains(thing);
+        }
+
+        return false;
+    }
+
+    private void SetSeen(string thing, bool seen = true)
+    {
+        var key = _saveKeyRoot + "_" + "set";
+        var seenSet = SimpleSave.Get<List<string>>(key) ?? new List<string>();
+        var containsThing = seenSet.Contains(thing);
+        if (seen == containsThing) return;
+
+        if ( seen) seenSet.Add(thing);
+        if (!seen) seenSet.Remove(thing);
+        
+        SimpleSave.Set(key, seenSet);
+    }
+}
+```
+
+The json will be saved to `{Application.persistentDataPath}/SaveContexts/Root.json` in the following format.
+The default location can be configured in the JsonSaveSystemSettings asset, created under SaveSystem/JsonSaveSystemSettings.
+```json
+{
+  "SomethingThatSavesData_SeenStrings_set": [
+    "thing1",
+    "thing_Two",
+    "another thingamajig"
+  ]
+}
+```
+
+
+## Complex Usage Example
+
+This example is an extension from the simple use case. It uses the underlying apis, which allow greater control.
 
 ```csharp
 public class SomethingThatSavesData : MonoBehaviour
@@ -38,7 +84,7 @@ public class SomethingThatSavesData : MonoBehaviour
             {
                 // if we don't have a context, use the SingletonLocator<ISaveDataBehavior>
                 //  utility to get one, using the current context name
-                _saveContext = SingletonLocator<ISaveDataBehavior>.Instance
+                _saveContext = JsonSaveSystemSingleton.GetContextProvider()
                     .GetContext(saveContextName);
             }
 
@@ -74,18 +120,6 @@ public class SomethingThatSavesData : MonoBehaviour
     }
 }
 ```
-
-The json will be saved to `{Application.persistentDataPath}/SaveContexts/SomeContextName.json`, in this format:
-```json
-{
-  "SomethingThatSavesData_SeenStrings_set": [
-    "thing1",
-    "thing_Two",
-    "another thingamajig"
-  ]
-}
-```
-
 
 ## Advanced usage
 

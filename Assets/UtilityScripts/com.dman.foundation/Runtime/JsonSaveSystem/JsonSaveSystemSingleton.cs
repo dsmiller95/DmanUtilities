@@ -76,18 +76,6 @@ namespace Dman.SaveSystem
             }
             return settingsList[0];
         }
-
-        [MenuItem("SaveSystem/Create Json Save System Settings")]
-        private static void CreateSettingsObject()
-        {
-            var newSettings = ScriptableObject.CreateInstance<JsonSaveSystemSettings>();
-            if(!AssetDatabase.IsValidFolder("Assets/Resources"))
-            {
-                AssetDatabase.CreateFolder("Assets", "Resources");
-            }
-            AssetDatabase.CreateAsset(newSettings, "Assets/Resources/JsonSaveSystemSettings.asset");
-            AssetDatabase.SaveAssets();
-        }
         
         [RuntimeInitializeOnLoadMethod]
         private static void RunOnStart()
