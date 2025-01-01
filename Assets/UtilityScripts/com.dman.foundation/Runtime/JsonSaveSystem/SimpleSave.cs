@@ -17,7 +17,7 @@ namespace Dman.SaveSystem
 
         private static ISaveDataContextProvider SaveFileProvider => JsonSaveSystemSingleton.GetContextProvider();
         private static ISaveDataPersistence SavePersistence => JsonSaveSystemSingleton.GetPersistor();
-        private static ISaveDataContext SaveFile => SaveFileProvider.GetContext(JsonSaveSystemSingleton.DefaultSaveFileName);
+        private static ISaveDataContext SaveFile => SaveFileProvider.GetContext(SaveFileName);
 
         public static void ChangeSaveFile(string newSaveFileName)
         {
