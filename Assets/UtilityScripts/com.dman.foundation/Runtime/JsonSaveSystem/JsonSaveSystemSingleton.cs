@@ -104,7 +104,7 @@ namespace Dman.SaveSystem
 
         public static JsonSaveSystemObjectSet Create(JsonSaveSystemSettings forSettings)
         {
-            var persistence = new FilesystemPersistence(forSettings.saveFolderName);
+            var persistence = new FileSystemPersistenceTMPNAME(forSettings.saveFolderName);
             var saveContextProvider = SaveDataContextProvider.CreateAndPersistTo(persistence);
             return new JsonSaveSystemObjectSet(saveContextProvider, persistence);
         }
