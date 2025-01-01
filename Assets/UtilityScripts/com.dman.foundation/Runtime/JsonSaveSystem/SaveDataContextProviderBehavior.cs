@@ -19,9 +19,6 @@ namespace Dman.SaveSystem
         [Tooltip("The root folder path is appended to the persistent data path to create the save file path")]
         [SerializeField] private string rootFolderPath = "SaveContexts";
 
-        [Tooltip("these are loaded on awake, and persisted on destroy")]
-        [SerializeField] private string[] contextsToManage;
-
         /// <summary>
         /// used to skip all lifecycle events if we spawned in while another instance was already alive
         /// </summary>
@@ -48,10 +45,6 @@ namespace Dman.SaveSystem
             }
             
             _provider = SaveDataContextProvider.CreateAndPersistTo(this);
-            foreach (string context in contextsToManage)
-            {
-                _provider.LoadContext(context);
-            }
             _keepAliveContainer = new KeepAliveContainer(OnAllHandlesDestroyed);
         }
         private void Awake()
@@ -120,19 +113,9 @@ namespace Dman.SaveSystem
                 File.Delete(filePath);
             }
         }
-
-        private void WarnIfUntrackedContext(string contextKey)
-        {
-            var foundIndex = Array.IndexOf(contextsToManage, contextKey);
-            if(foundIndex == -1)
-            {
-                Log.Warning($"context key {contextKey} is not being managed by this provider. It will not be saved or loaded on destroy/awake", this);
-            }
-        }
         
         public ISaveDataContext GetContext(string contextKey)
         {
-            WarnIfUntrackedContext(contextKey);
             return _provider.GetContext(contextKey);
         }
 

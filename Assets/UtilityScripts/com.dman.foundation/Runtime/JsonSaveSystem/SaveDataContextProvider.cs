@@ -66,36 +66,49 @@ namespace Dman.SaveSystem
         public ISaveDataContext GetContext(string contextKey)
         {
             if(IsDisposed) throw new ObjectDisposedException(nameof(SaveDataContextProvider));
-            return GetContextInternal(contextKey);
+            if(GetContextInternal(contextKey) is { } existingContext)
+            {
+                return existingContext;
+            }
+            
+            // if context is not in memory, then try to load it from disk, or return default
+            return TryLoadContextInternal(contextKey);
         }
         
         public void PersistContext(string contextKey)
         {
             if(IsDisposed) throw new ObjectDisposedException(nameof(SaveDataContextProvider));
-            var contextData = GetContextInternal(contextKey).WrappedHandle.SavedToken;
+            var context = GetContextInternal(contextKey);
+            if (context == null) return;
+            var contextData = context.WrappedHandle.SavedToken;
             using var writer = _persistence.WriteTo(contextKey);
             using var jsonWriter = new JsonTextWriter(writer);
             _serializer.Serialize(jsonWriter, contextData);
             _persistence.OnWriteComplete(contextKey);
-            //contextData.WriteTo(jsonWriter);
         }
         
         public void LoadContext(string contextKey)
         {
+            TryLoadContextInternal(contextKey);
+        }
+        
+        private SaveDataContextHandle TryLoadContextInternal(string contextKey)
+        {
             if(IsDisposed) throw new ObjectDisposedException(nameof(SaveDataContextProvider));
+            var contextHandle = GetOrCreateContextInternal(contextKey);
             using var reader = _persistence.ReadFrom(contextKey);
-            if (reader == null) return;
+            if (reader == null) return contextHandle;
             using var jsonReader = new JsonTextReader(reader);
             var data = JObject.Load(jsonReader);
-            var contextHandle = GetContextInternal(contextKey);
             contextHandle.SwapInternalHandle(SaveDataContext.Loaded(data, _serializer));
+            return contextHandle;
         }
         
         public void DeleteContext(string contextKey)
         {
             if(IsDisposed) throw new ObjectDisposedException(nameof(SaveDataContextProvider));
             _persistence.Delete(contextKey);
-            var contextHandle = GetContextInternal(contextKey);
+            var contextHandle = GetOrCreateContextInternal(contextKey);
             contextHandle.SwapInternalHandle(SaveDataContext.Empty(_serializer));
         }
 
@@ -104,7 +117,8 @@ namespace Dman.SaveSystem
             if(IsDisposed) throw new ObjectDisposedException(nameof(SaveDataContextProvider));
             return saveContexts.Keys;
         }
-
+        
+        [CanBeNull]
         private SaveDataContextHandle GetContextInternal(string contextKey)
         {
             if (saveContexts.TryGetValue(contextKey, out SaveDataContextHandle context))
@@ -112,9 +126,23 @@ namespace Dman.SaveSystem
                 return context;
             }
 
-            context = new SaveDataContextHandle(SaveDataContext.Empty(_serializer));
+            return null;
+        }
+        
+        private SaveDataContextHandle CreateContextInternal(string contextKey)
+        {
+            var context = new SaveDataContextHandle(SaveDataContext.Empty(_serializer));
             saveContexts[contextKey] = context;
             return context;
+        }
+
+        private SaveDataContextHandle GetOrCreateContextInternal(string contextKey)
+        {
+            if (GetContextInternal(contextKey) is { } existingContext)
+            {
+                return existingContext;
+            }
+            return CreateContextInternal(contextKey);
         }
         
         public void Dispose()
