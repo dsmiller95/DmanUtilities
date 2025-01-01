@@ -81,7 +81,10 @@ namespace Dman.SaveSystem
         private static void CreateSettingsObject()
         {
             var newSettings = ScriptableObject.CreateInstance<JsonSaveSystemSettings>();
-            AssetDatabase.CreateFolder("Assets", "Resources");
+            if(!AssetDatabase.IsValidFolder("Assets/Resources"))
+            {
+                AssetDatabase.CreateFolder("Assets", "Resources");
+            }
             AssetDatabase.CreateAsset(newSettings, "Assets/Resources/JsonSaveSystemSettings.asset");
             AssetDatabase.SaveAssets();
         }
