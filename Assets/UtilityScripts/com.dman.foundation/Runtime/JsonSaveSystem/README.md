@@ -39,7 +39,7 @@ public class SomethingThatSavesData : MonoBehaviour
                 // if we don't have a context, use the SingletonLocator<ISaveDataBehavior>
                 //  utility to get one, using the current context name
                 _saveContext = SingletonLocator<ISaveDataBehavior>.Instance
-                    .GetContext(seenAbilitiesContextName);
+                    .GetContext(saveContextName);
             }
 
             return _saveContext;
