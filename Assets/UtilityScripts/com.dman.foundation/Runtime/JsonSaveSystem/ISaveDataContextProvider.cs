@@ -4,13 +4,6 @@ using Dman.Utilities.Logger;
 
 namespace Dman.SaveSystem
 {
-    public interface ISaveDataBehavior : 
-        ISaveDataContextProvider,
-        IAmKeptAlive
-    {
-    
-    }
-
     /// <summary>
     /// referenced as singleton from inside scripts which care about save data.
     /// </summary>

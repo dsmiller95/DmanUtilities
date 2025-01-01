@@ -24,7 +24,7 @@ namespace Dman.Leaderboard.SaveSystemLeaderboard
                 if (_saveContext?.IsAlive == false) _saveContext = null;
                 if (_saveContext == null)
                 {
-                    _saveContext = SingletonLocator<ISaveDataBehavior>.Instance
+                    _saveContext = JsonSaveSystemSingleton.GetContextProvider()
                         .GetContext(_saveContextName);
                 }
 
