@@ -1,6 +1,13 @@
 # Changelog
 
 
+
+## [0.8.0] - 2025-04-01
+
+### Added
+
+- move async dependent code out to com.dman.task-utilities
+
 ## [0.7.0] - 2024-08-13
 
 ### Added

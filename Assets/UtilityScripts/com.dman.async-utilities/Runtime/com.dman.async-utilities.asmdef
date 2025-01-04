@@ -1,7 +1,10 @@
 {
-    "name": "com.dman.utilities",
+    "name": "com.dman.async-utilities",
     "rootNamespace": "Dman.Utilities",
-    "references": [],
+    "references": [
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:59e83f50c45b3c04faa860925fdf2547"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

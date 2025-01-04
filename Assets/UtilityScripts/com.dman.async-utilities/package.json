@@ -1,0 +1,15 @@
+{
+  "name": "com.dman.async-utilities",
+  "version": "0.8.0",
+  "displayName": "Dman's Async Utilities",
+  "description": "A bunch of async utilities too small to go in their own package",
+  "unity": "2020.1",
+  "dependencies": {
+    "com.cysharp.unitask": "2.3.1",
+    "com.dman.utilities": "0.7.0"
+  },
+  "author": {
+    "name": "Dan Miller",
+    "email": "dsmiller95@gmail.com"
+  }
+}
