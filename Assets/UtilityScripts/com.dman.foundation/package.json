@@ -1,11 +1,12 @@
 {
   "name": "com.dman.foundation",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "displayName": "Dman Foundation",
   "description": "A large collection of utilities and tools which integrate deeply into unity.",
   "unity": "2020.1",
   "dependencies": {
-    "com.dman.utilities": "0.7.0",
+    "com.dman.utilities": "0.8.0",
+    "com.dman.async-utilities": "0.8.0",
     "com.unity.nuget.newtonsoft-json": "3.0.2",
     "com.cysharp.unitask": "2.5.5"
   },
