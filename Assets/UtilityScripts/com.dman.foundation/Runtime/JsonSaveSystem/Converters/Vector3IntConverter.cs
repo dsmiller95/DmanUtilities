@@ -9,13 +9,29 @@ namespace Dman.SaveSystem.Converters
     {
         public override void WriteJson(JsonWriter writer, Vector3Int value, JsonSerializer serializer)
         {
-            writer.WriteRawValue($"{{\"x\":{value.x},\"y\":{value.y},\"z\":{value.z}}}");
+            var serializedModel = new Vector3IntDeserializeModel
+            {
+                x = value.x,
+                y = value.y,
+                z = value.z
+            };
+            serializer.Serialize(writer, serializedModel);
         }
 
         public override Vector3Int ReadJson(JsonReader reader, Type objectType, Vector3Int existingValue, bool hasExistingValue,
             JsonSerializer serializer)
         {
-            var deserialized = serializer.Deserialize<Vector3IntDeserializeModel>(reader);
+            Vector3IntDeserializeModel deserialized;
+            try
+            {
+                deserialized = serializer.Deserialize<Vector3IntDeserializeModel>(reader);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to deserialize Vector3Int: {e.Message} at {reader.Path} {reader.Depth}");
+                Debug.LogException(e);
+                throw;
+            }
             if (deserialized == null)
             {
                 if (hasExistingValue) return existingValue;
